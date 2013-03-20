@@ -1,9 +1,10 @@
-import sys, math, os, copy,random
+import sys, math, os, copy,random,Queue
 """
 assumptions--
    getLatency(id1,id2)//return stored latency
    computeLatency(id1, id2)//use sockets to compute the latency
 """
+from twisted.protocols.amp import MAX_VALUE_LENGTH
 class Members:
     def __init__(self):
         self.memberlist=[]
@@ -22,6 +23,9 @@ class Member:
         if(self.routing==None):
             self.routing=Routing()
         self.nexthop={}#dest id-> nexthop id mapping
+        self.discmembers=[]#Queue of lists each [member, time]
+        self.graphsize
+        self.T=100
         self.seq=0
     def evaluate_utility(self,id_j):
         jutility=0
@@ -44,6 +48,19 @@ class Member:
         self.send(self.id, self.seq,id_j,0, ("getCostToI", [id_j,self.id]))
         costJI=self.waituntilnotified(!self.receive(temp))
         return max(costIJ,costJI)
+    def mesh_repair(self):#increment time for all members in the list
+        for i in discmembers:
+            i[1]=i[1]+1
+        while(len(self.discmembers) and self.discmembers[0][1]>=T)
+            if(self.routing.getLatency(self.discmembers[0])!-1):
+                self.routing.addlink(self.discmembers[0])
+                self.routing.refresh()
+        prob=len(self.discmembers)/self.graphsize
+        if(random.random()>prob):
+            if(self.routing.getLatency(self.discmembers[0])!-1):
+                self.routing.addlink(self.discmembers[0])
+                self.routing.refresh()
+        self.sleep(10)s         
     def receive(self,insdata):
         self.notifyfunc()
         pass
