@@ -97,7 +97,7 @@ class Member:
             client.connect((host, port))
             client.recv(1024)
             end = datetime.datetime.now()
-        except timeout:
+        except:
             client.close            
             return -1
 
