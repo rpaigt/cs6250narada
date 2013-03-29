@@ -12,11 +12,18 @@ class Members:
     def __init__(self):
         self.memberlist=[]
 
+<<<<<<< HEAD
 class Routing:
     def __init__(self):
         self.table={}#id to IP/MAC mapping
     def queryCost(self):
 	pass
+=======
+#class Routing:
+#    def __init__(self):
+#        self.table={}#id to IP/MAC mapping
+#    def queryCost(self):
+>>>>>>> Some changes
 
 
 class Member:
