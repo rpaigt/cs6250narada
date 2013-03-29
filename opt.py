@@ -16,6 +16,7 @@ class Routing:
     def __init__(self):
         self.table={}#id to IP/MAC mapping
     def queryCost(self):
+	pass
 
 
 class Member:
@@ -55,22 +56,22 @@ class Member:
         costIJ=self.getCostToI(id_j)
         temp=self.seq
         self.send(self.id, self.seq,id_j,0, ("getCostToI", [id_j,self.id]))
-        costJI=self.waituntilnotified(!self.receive(temp))
+        costJI=self.waituntilnotified(not self.receive(temp))
         return max(costIJ,costJI)
 
     def mesh_repair(self):#increment time for all members in the list
         for i in discmembers:
             i[1]=i[1]+1
-        while(len(self.discmembers) and self.discmembers[0][1]>=T)
-            if(self.routing.getLatency(self.discmembers[0])!-1):
+        while(len(self.discmembers) and self.discmembers[0][1] >= T):
+            if(self.routing.getLatency(self.discmembers[0]) != -1):
                 self.routing.addlink(self.discmembers[0])
                 self.routing.refresh()
         prob=len(self.discmembers)/self.graphsize
         if(random.random()>prob):
-            if(self.routing.getLatency(self.discmembers[0])!-1):
+            if(self.routing.getLatency(self.discmembers[0]) != -1):
                 self.routing.addlink(self.discmembers[0])
                 self.routing.refresh()
-        self.sleep(10)s         
+        self.sleep(10)         
 
     def receive(self,insdata):
         self.notifyfunc()
