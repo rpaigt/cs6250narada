@@ -67,8 +67,7 @@ class Member:
         self.sleep(10)
 
 	def listenForInput():
-		#blocking recieve in recvdata
-		if(data[0]=="send"):
+		#blocking recieve in recvdata put into recvdata
 
 	def recv(port):
 		while(1):
@@ -83,17 +82,12 @@ class Member:
 		if(self.routing.opt==True):
 			self.evaluate_utility()
 			self.eval_consensus_cost()
+	def updateOthers():
+		send(self.nodeid)
     def receive(self,insdata):
         self.notifyfunc()
         pass
         #use self.routing to receive, process and return data
-
-
-    def send(self, from_id, from_seq, to_id, rrtype, insdata):
-        self.seq=self.seq+1
-        pass
-        #use self.routing to send instruction and data
-
 
     # Right now it uses the ip address, but depending on how we map the nodes to the address this parameter can change.
     def ping_node(self, ipaddress):
