@@ -12,13 +12,6 @@ class Members:
     def __init__(self):
         self.memberlist=[]
 
-class Routing:
-    def __init__(self):
-        self.table={}#id to IP/MAC mapping
-    def queryCost(self):
-	pass
-
-
 class Member:
     def __init__(self, members=None, routing=None):
         self.members=members
@@ -71,8 +64,25 @@ class Member:
             if(self.routing.getLatency(self.discmembers[0]) != -1):
                 self.routing.addlink(self.discmembers[0])
                 self.routing.refresh()
-        self.sleep(10)         
+        self.sleep(10)
 
+	def listenForInput():
+		#blocking recieve in recvdata
+		if(data[0]=="send"):
+
+	def recv(port):
+		while(1):
+			p=Process(listenForInput, args=(port))
+			p.join()
+			recvdata=unpickle(recvdata)
+			if(data[0]=='datasend'):
+				#call methods in routing
+				routing.sendData(data[1:],data[0])
+			if(data[0]=='update')
+				routing.checkroute()
+		if(self.routing.opt==True):
+			self.evaluate_utility()
+			self.eval_consensus_cost()
     def receive(self,insdata):
         self.notifyfunc()
         pass
@@ -85,8 +95,7 @@ class Member:
         #use self.routing to send instruction and data
 
 
-    # Right now it uses the ip address, but depending on how we map
-    # the nodes to the address this parameter can change.
+    # Right now it uses the ip address, but depending on how we map the nodes to the address this parameter can change.
     def ping_node(self, ipaddress):
         client = socket.socket()    
         client.settimeout(5)
