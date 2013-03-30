@@ -95,7 +95,7 @@ class Member:
 
         try:
             start = datetime.datetime.now()
-            client.connect((host, port))
+            client.connect((ipaddress, port))
             client.recv(1024)
             end = datetime.datetime.now()
         except:
