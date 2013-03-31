@@ -1,11 +1,11 @@
 import gevent
 import networkx as nx
 import datetime
-import signal
 import json
+import signal
 from gevent import socket
 from gevent.server import StreamServer
-from gevent.coros import BoundedSemaphore
+
 
 port = 30000
 this_node = 'A'
@@ -14,8 +14,8 @@ this_ip = '192.168.1.51'
 g = nx.Graph()
 
 routes = {}
-ip_address_dict = { 'B' : '192.168.1.59' }
-neighbour_list = ['B']
+ip_address_dict = { 'B' : '192.168.1.59' , 'C' : '192.168.1.60'}
+neighbour_list = ['B', 'C']
 best_routes = {}
 
 
@@ -27,8 +27,9 @@ def send_data(node, data):
 	gevent.sleep(0)
 	client.close()
 
-def send_to_neighbours(data):
+def send_to_neighbours(data, origin):
 	for node in neighbour_list:
+		if node == this_node or node == origin: continue
 		gevent.spawn(send_data, node, data)
 		gevent.sleep(0)
 		
@@ -63,7 +64,7 @@ def ping_node(node, update=True):
 
 	if update:
 		g.add_node(node)
-		g.add_edge(this_node, node, weight = delay)
+		g.add_edge(this_node, node, weight=delay)
 
 	return delay
 
@@ -96,7 +97,7 @@ def handle_route_vector(incoming_node, route_vector):
 			ip_address_dict[node] = ip_address
 
 		g.add_node(node)
-		g.add_edge(previous_node, node, weight = delay)
+		g.add_edge(previous_node, node, weight=delay)
 
 		previous_node = node
 
@@ -112,7 +113,7 @@ def propagate_update(update_data):
 	data = json.dumps(data)
 	data = 'UPDATE\n' + data
 
-	send_to_neighbours(data)
+	send_to_neighbours(data, origin=incoming_node)
 
 def handle_connection(socket, address):
 
@@ -145,10 +146,41 @@ def populate_neighbour_latencies():
 def update_graph():
 	pass
 
-populate_neighbour_latencies()
+def schedule(delay, func, *args, **kw_args):
+    gevent.spawn_later(0, func, *args, **kw_args)
+    gevent.spawn_later(delay, schedule, delay, func, *args, **kw_args)
+
+def propagate_neighbour_latencies():
+	neighbours = g[this_node]
+	print neighbours
+
+	for nodeS in neighbours.keys():
+		weightS = neighbours[nodeS]['weight']
+		for nodeD in neighbours.keys():
+			weightD = neighbours[nodeD]['weight']
+
+			print nodeS, weightS, nodeD, weightD
+			if nodeS == nodeD: continue
+
+			data = [this_node, this_ip, [nodeD, ip_address_dict[nodeD], weightD]]
+
+			gevent.spawn(send_data, nodeS, data)
+
 
 
 
 server = StreamServer(('0.0.0.0', port), handle_connection)
 print 'Starting server on port: ' + str(port)
+
+gevent.signal(signal.SIGTERM, server.stop)
+gevent.signal(signal.SIGQUIT, server.stop)
+gevent.signal(signal.SIGINT, server.stop)
+
+server.start()
+
+populate_neighbour_latencies()
+print g.nodes()
+print g.edges()
+schedule(60, propagate_neighbour_latencies)
+
 server.serve_forever()
