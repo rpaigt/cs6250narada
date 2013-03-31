@@ -205,8 +205,9 @@ def propagate_neighbour_latencies():
 			if nodeS == nodeD: continue
 
 			data = [this_node, this_ip, [nodeD, ip_address_dict[nodeD], weightD]]
+			data = 'UPDATE\n' + json.dumps(data)
 
-			gevent.spawn(send_data, nodeS, json.dumps(data))
+			gevent.spawn(send_data, nodeS, data)
 
 
 
