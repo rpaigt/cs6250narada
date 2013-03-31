@@ -9,6 +9,7 @@ from gevent.coros import BoundedSemaphore
 
 port = 30000
 this_node = 'A'
+this_ip = '192.168.1.51'
 
 g = nx.Graph()
 
@@ -63,11 +64,8 @@ def ping_node(node, update=True):
 	return delay
 
 
-## update_data = [neighbour, neighbourip, (node, nodeip, delay), ... ]
+## update_data = [neighbour, neighbourip, [node, nodeip, delay], ... ]
 def handle_update(update_data):
-
-	update_data = json.loads(update_data)
-
 	lock.acquire()
 
 	if len(update_data) >= 2:
@@ -102,6 +100,19 @@ def handle_route_vector(incoming_node, route_vector):
 
 		previous_node = node
 
+def propagate_update(update_data):
+	if len(update_data) >= 2:
+		incoming_node = update_data[0]
+		incoming_node_ip = update_data[1]
+
+	data = [this_node, this_ip, 
+			[incoming_node, incoming_node_ip, g[this_node][incoming_node]['weight']]
+	data.append(update_data[2:])
+	
+	data = json.dumps(data)
+	data = 'UPDATE\n' + data
+
+	send_to_neighbours(data)
 
 def handle_connection(socket, address):
 
@@ -113,7 +124,10 @@ def handle_connection(socket, address):
 		socket.close()
 
 	elif data[0] == 'UPDATE':
-		handle_update(data[1:])
+		data = json.loads(data[1:])
+
+		handle_update(data)
+		propagate_update(data)
 
 	elif data[0] == 'DATA':
 		print data[1:]
