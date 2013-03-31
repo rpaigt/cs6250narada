@@ -15,7 +15,6 @@ g = nx.Graph()
 routes = {}
 ip_address_dict = { 'B' : '192.168.1.119' }
 neighbour_list = ['B']
-#latencies = {}
 best_routes = {}
 
 lock = BoundedSemaphore(1)
@@ -35,9 +34,7 @@ def send_to_neighbours(data):
 		
 
 def ping_node(node, update=True):
-
 	ip_address = ip_address_dict[node]
-
 	client = socket.socket()
 	client.settimeout(1)
 	tries = 0
@@ -63,13 +60,6 @@ def ping_node(node, update=True):
 		g.add_node(node)
 		g.add_edge(this_node, node, weight = delay)
 
-	# if update:
-	# 	if not latencies.has_keys(this_node):
-	# 		latencies[this_node] = {}
-
-	# 	latencies[this_node][node] = delay
-
-
 	return delay
 
 
@@ -90,9 +80,6 @@ def handle_update(update_data):
 		if not incoming_node in neighbour_list:
 			neighbour_list.append(incoming_node)
 
-		#if not incoming_node in latencies.keys():
-		#	ping_node(incoming_node)
-
 		if not g[this_node].has_key(incoming_node):
 			ping_node(incoming_node)
 
@@ -104,18 +91,11 @@ def handle_update(update_data):
 	lock.release()
 
 def handle_route_vector(incoming_node, route_vector):
-	#cost = latencies[this_node].get(incoming_node, 9999)
-	#cost = g[this_node][incoming_node]['weight']
-	
 	previous_node = incoming_node
 
 	for (node, ip_address, delay) in route_vector:
 		if not node in ip_address_dict.keys():
 			ip_address_dict[node] = ip_address
-
-		#cost += delay
-		#if cost < latencies.get(node, 9999):
-		#	latencies[node] = cost
 
 		g.add_node(node)
 		g.add_edge(previous_node, node, weight = delay)
@@ -147,20 +127,13 @@ def populate_latencies():
 		workers.append(gevent.spawn(ping_node, node))
 	gevent.joinall(workers)
 
-def build_initial_graph():
-	g.add_node(this_node)
-	for neighbour in neighbour_list:
-		g.add_node(neighbour)
-
-	for node, latency in latencies.items():
-		g.add_edge(this_node, node, weight = latencies[this_node][node])
-
-
 def update_graph():
 	pass
 
 populate_latencies()
-build_initial_graph()
+print g.nodes()
+for (a,b) in g.edges():
+	print a,b, g[a][b]['weight']
 
 
 server = StreamServer(('0.0.0.0', port), handle_connection)
