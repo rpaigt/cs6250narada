@@ -148,17 +148,14 @@ def handle_connection(socket, address):
 	data = data.split('\n')
 
 	if data[0] == 'ECHO':
-		print 'ECHO Request: ',
-		print address
-
 		socket.send(data[0])
 		socket.close()
 
 	elif data[0] == 'UPDATE':
 		print 'UPDATE Request: ',
-		data = json.loads(data[1:])
+		data = json.loads(data[1])
+		print 'new data'
 		print data
-
 
 		handle_update(data)
 		propagate_update(data)
