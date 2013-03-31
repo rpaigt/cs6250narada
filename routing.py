@@ -10,9 +10,13 @@ class routing:
 		self.neighbors=[]
 		self.nodeid=nodeid
 		self.member=member
+
+
 	def propagateUpdate(newroute):
 		for node in neighbors:
 			sendData(pickle(self.nodeid,newroute))
+
+
 	def checkRoute(route):#assume route updates are like (senderID, [(revnoceid, prevhopdistance),(,)])
 		nodeid=route[0]
 		nodevec=route[1]
@@ -34,10 +38,14 @@ class routing:
 			graph=computeGraph(bestroutes)#graph=[nodes, edges]										#create
 			spantree=computeSpanningTree(graph)#same as above										#create
 			updateFwdTable(spantree, fwdtable)#find out where to send packet when it is received	#create
-			timer.reset()																			#find
+			timer.reset() #find
+
+
 	def sendData(data,destid):
 		ip=cache[fwdtable[destid]]
 		send(pickle(self.nodeid,data), ip)					#find
+
+		
 	def updateTimer():
 		#update
 		if(timer.longtimerexpire):
