@@ -8,14 +8,14 @@ from gevent.server import StreamServer
 from gevent.coros import BoundedSemaphore
 
 port = 30000
-this_node = 'A'
-this_ip = '192.168.1.51'
+this_node = 'B'
+this_ip = '192.168.1.59'
 
 g = nx.Graph()
 
 routes = {}
-ip_address_dict = { 'B' : '192.168.1.119' }
-neighbour_list = ['B']
+ip_address_dict = { 'A' : '192.168.1.51' }
+neighbour_list = ['A']
 best_routes = {}
 
 lock = BoundedSemaphore(1)
@@ -105,10 +105,10 @@ def propagate_update(update_data):
 		incoming_node = update_data[0]
 		incoming_node_ip = update_data[1]
 
-	data = [this_node, this_ip, 
-			[incoming_node, incoming_node_ip, g[this_node][incoming_node]['weight']]
-	data.append(update_data[2:])
+	data = [this_node, this_ip, [incoming_node, incoming_node_ip, g[this_node][incoming_node]['weight']]]
 	
+	for vector in update_data[2:]:
+		data.append(vector)
 	data = json.dumps(data)
 	data = 'UPDATE\n' + data
 
