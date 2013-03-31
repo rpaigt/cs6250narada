@@ -163,7 +163,8 @@ def handle_connection(socket, address):
 		socket.close()
 
 	else:
-		pass
+		print 'UNRECOG'
+		print data
 
 def populate_neighbour_latencies():
 	workers = []
