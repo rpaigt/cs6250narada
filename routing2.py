@@ -104,7 +104,7 @@ def handle_update(update_data):
 
 
 		if len(update_data) > 2:
-			handle_route_vector(incoming_node, update_data[2:])
+			handle_route_vector(incoming_node, update_data([2:])
 
 def handle_route_vector(incoming_node, route_vector):
 	previous_node = incoming_node
