@@ -8,9 +8,8 @@ from gevent.server import StreamServer
 
 
 port = 30000
-
 g = nx.Graph()
-g.add_node(this_node)
+
 
 with open('ipaddresses.txt') as f:
     ip_node_mapping = f.readlines()
@@ -23,6 +22,8 @@ ip_node_mapping = [ip_node.strip().split(',') for ip_node in ip_node_mapping]
 
 this_node = ip_node_mapping[0][0]	# First entry in the ipaddress file is the host node and ip pair
 this_ip = ip_node_mapping[0][1]
+
+g.add_node(this_node)
 
 for node, ip in ip_node_mapping:
 	ip_address_dict[node] = ip
