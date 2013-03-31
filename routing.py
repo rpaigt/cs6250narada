@@ -1,4 +1,5 @@
 import sys, os, re, copy.deepcopy
+import networkx as nx
 
 class routing:
 	def __init__(member,nodeid):
@@ -50,3 +51,17 @@ class routing:
 		#update
 		if(timer.longtimerexpire):
 			self.opt=True
+
+	def computeGraph(bestroutes):
+		G = nx.Graph()
+		G.add_nodes_from(bestroutes)
+		return G
+
+	def computeSpanningTree(graph):
+		T = nx.minimum_spanning_tree(G)
+		return T
+
+	def updateFwdTable(spantree, fwdtable):
+
+
+
