@@ -18,7 +18,6 @@ ip_address_dict = { 'B' : '192.168.1.59' }
 neighbour_list = ['B']
 best_routes = {}
 
-lock = BoundedSemaphore(1)
 
 def send_data(node, data):
 	ip_address = ip_address_dict[node]
@@ -51,7 +50,9 @@ def ping_node(node, update=True):
 			client.send('ECHO\n')
 			client.recv(1024)
 			end = datetime.datetime.now()
+			
 			client.close()
+
 			delay = (((end - start) / 2).microseconds) / 1000.0
 			break
 
@@ -69,8 +70,6 @@ def ping_node(node, update=True):
 
 ## update_data = [neighbour, neighbourip, [node, nodeip, delay], ... ]
 def handle_update(update_data):
-	lock.acquire()
-
 	if len(update_data) >= 2:
 		incoming_node = update_data[0]
 		incoming_node_ip = update_data[1]
@@ -88,8 +87,6 @@ def handle_update(update_data):
 		if len(update_data) > 2:
 			for route_vector in update_data[2:]:
 				handle_route_vector(incoming_node, route_vector)
-
-	lock.release()
 
 def handle_route_vector(incoming_node, route_vector):
 	previous_node = incoming_node
@@ -139,20 +136,18 @@ def handle_connection(socket, address):
 	else:
 		pass
 
-def populate_latencies():
+def populate_neighbour_latencies():
 	workers = []
+
 	for node in neighbour_list:
-		print 'node: ' + node
 		workers.append(gevent.spawn(ping_node, node))
 	gevent.joinall(workers)
 
 def update_graph():
 	pass
 
-populate_latencies()
-print g.nodes()
-for (a,b) in g.edges():
-	print a,b, g[a][b]['weight']
+populate_neighbour_latencies()
+
 
 
 server = StreamServer(('0.0.0.0', port), handle_connection)
