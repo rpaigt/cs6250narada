@@ -43,8 +43,6 @@ def ping_node(node, update=True):
 
 	while tries < max_tries:
 		try:
-			print 'Pinging: ', ip_address, port, tries
-
 			client = socket.socket()
 			client.settimeout(5)
 			client.connect((ip_address, port))
@@ -53,10 +51,10 @@ def ping_node(node, update=True):
 			client.send('ECHO\n')
 			client.recv(1024)
 			end = datetime.datetime.now()
-
+			client.close()
 			delay = (((end - start) / 2).microseconds) / 1000.0
 			break
-			
+
 		except:
 			tries += 1
 			if tries == max_tries:
