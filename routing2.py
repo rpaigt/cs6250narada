@@ -152,14 +152,12 @@ def schedule(delay, func, *args, **kw_args):
 
 def propagate_neighbour_latencies():
 	neighbours = g[this_node]
-	print neighbours
 
 	for nodeS in neighbours.keys():
 		weightS = neighbours[nodeS]['weight']
 		for nodeD in neighbours.keys():
 			weightD = neighbours[nodeD]['weight']
 
-			print nodeS, weightS, nodeD, weightD
 			if nodeS == nodeD: continue
 
 			data = [this_node, this_ip, [nodeD, ip_address_dict[nodeD], weightD]]
@@ -179,8 +177,5 @@ gevent.signal(signal.SIGINT, server.stop)
 server.start()
 
 populate_neighbour_latencies()
-print g.nodes()
-print g.edges()
 schedule(60, propagate_neighbour_latencies)
-
 server.serve_forever()
