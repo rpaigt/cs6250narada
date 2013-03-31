@@ -8,14 +8,14 @@ from gevent.server import StreamServer
 from gevent.coros import BoundedSemaphore
 
 port = 30000
-this_node = 'B'
-this_ip = '192.168.1.59'
+this_node = 'A'
+this_ip = '192.168.1.51'
 
 g = nx.Graph()
 
 routes = {}
-ip_address_dict = { 'A' : '192.168.1.51' }
-neighbour_list = ['A']
+ip_address_dict = { 'B' : '192.168.1.59' }
+neighbour_list = ['B']
 best_routes = {}
 
 lock = BoundedSemaphore(1)
@@ -36,22 +36,27 @@ def send_to_neighbours(data):
 
 def ping_node(node, update=True):
 	ip_address = ip_address_dict[node]
-	client = socket.socket()
-	client.settimeout(1)
+	
 	tries = 0
 	delay = 0
 	max_tries = 2
 
 	while tries < max_tries:
 		try:
+			print 'Pinging: ', ip_address, port, tries
+
+			client = socket.socket()
+			client.settimeout(5)
 			client.connect((ip_address, port))
 
 			start = datetime.datetime.now()
 			client.send('ECHO\n')
 			client.recv(1024)
 			end = datetime.datetime.now()
-			delay = (((end - start) / 2).microseconds) / 1000.0
 
+			delay = (((end - start) / 2).microseconds) / 1000.0
+			break
+			
 		except:
 			tries += 1
 			if tries == max_tries:
@@ -138,6 +143,7 @@ def handle_connection(socket, address):
 def populate_latencies():
 	workers = []
 	for node in neighbour_list:
+		print 'node: ' + node
 		workers.append(gevent.spawn(ping_node, node))
 	gevent.joinall(workers)
 
