@@ -133,12 +133,17 @@ def handle_connection(socket, address):
 	data = data.split('\n')
 
 	if data[0] == 'ECHO':
-		print 'inside echo'
+		print 'ECHO Request: ',
+		print address
+
 		socket.send(data[0])
 		socket.close()
 
 	elif data[0] == 'UPDATE':
+		print 'UPDATE Request: ',
 		data = json.loads(data[1:])
+		print data
+
 
 		handle_update(data)
 		propagate_update(data)
@@ -153,7 +158,7 @@ def handle_connection(socket, address):
 	elif data[0] == 'STATUS':
 		socket.send(str(g.nodes()))
 		for a,b in g.edges():
-			socket.send(str(a) + str(b), str(g[a][b]['weight']))
+			socket.send(str(a) + str(b) + str(g[a][b]['weight']))
 		socket.close()
 
 	else:
