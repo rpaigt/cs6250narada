@@ -8,15 +8,27 @@ from gevent.server import StreamServer
 
 
 port = 30000
-this_node = 'A'
-this_ip = '192.168.1.51'
 
 g = nx.Graph()
+g.add_node(this_node)
 
-routes = {}
-ip_address_dict = { 'B' : '192.168.1.59' , 'C' : '192.168.1.60'}
-neighbour_list = ['B', 'C']
-best_routes = {}
+with open('ipaddresses.txt') as f:
+    ip_node_mapping = f.readlines()
+
+with open('neighbours.txt') as f:
+	neighbours = f.readlines()
+
+ip_address_dict = {}
+ip_node_mapping = [ip_node.strip().split(',') for ip_node in ip_node_mapping]
+
+this_node = ip_node_mapping[0][0]	# First entry in the ipaddress file is the host node and ip pair
+this_ip = ip_node_mapping[0][1]
+
+for node, ip in ip_node_mapping:
+	ip_address_dict[node] = ip
+
+
+neighbour_list = [n.strip() for n in neighbours]
 
 
 def send_data(node, data):
@@ -131,8 +143,18 @@ def handle_connection(socket, address):
 		handle_update(data)
 		propagate_update(data)
 
+		socket.close()
+
 	elif data[0] == 'DATA':
 		print data[1:]
+
+		socket.close();
+
+	elif data[0] == 'STATUS':
+		socket.send(str(g.nodes()))
+		for a,b in g.edges():
+			socket.send(str(a) + str(b), str(g[a][b]['weight']))
+		socket.close()
 
 	else:
 		pass
@@ -163,8 +185,7 @@ def propagate_neighbour_latencies():
 
 			data = [this_node, this_ip, [nodeD, ip_address_dict[nodeD], weightD]]
 
-			gevent.spawn(send_data, nodeS, data)
-
+			gevent.spawn(send_data, nodeS, json.dumps(data))
 
 
 
