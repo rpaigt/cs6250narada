@@ -23,4 +23,20 @@ B
 
 these are the adjacent nodes.
 
-Create a network using VM's and fill in the ip addresses. Add print statements whereever neccessary and figure out if the updates are propagating directly.
+Create a network using some VM's and fill in the ip addresses. Add print statements wherever neccessary and figure out if the updates are propagating directly.
+
+
+Libraries needed:
+Networkx
+Gevent
+
+Check the installation guides online. 
+
+For ubuntu try this
+
+sudo apt-get install python-dev
+sudo apt-get install libevent-dev
+sudo apt-get install python-pip
+
+sudo pip install networkx
+sudo pip install gevent
