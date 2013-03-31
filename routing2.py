@@ -32,18 +32,20 @@ for node, ip in ip_node_mapping:
 neighbour_list = [n.strip() for n in neighbours]
 
 
-def send_data(node, data):
+def send_data(node, data, update=False):
 	ip_address = ip_address_dict[node]
 	client = socket.socket()
 	client.connect((ip_address, port))
+	if update:
+		client.send('UPDATE\n')
 	client.send(data)
 	gevent.sleep(0)
 	client.close()
 
-def send_to_neighbours(data, origin):
+def send_to_neighbours(data, origin, update=False):
 	for node in neighbour_list:
 		if node == this_node or node == origin: continue
-		gevent.spawn(send_data, node, data)
+		gevent.spawn(send_data, node, data, update)
 		gevent.sleep(0)
 		
 
@@ -124,9 +126,8 @@ def propagate_update(update_data):
 	for vector in update_data[2:]:
 		data.append(vector)
 	data = json.dumps(data)
-	data = 'UPDATE\n' + data
 
-	send_to_neighbours(data, origin=incoming_node)
+	send_to_neighbours(data, origin=incoming_node, update=True)
 
 def handle_connection(socket, address):
 
