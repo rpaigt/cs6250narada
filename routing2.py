@@ -44,7 +44,7 @@ def send_data(node, data):
 def send_to_neighbours(data, origin):
 	for node in neighbour_list:
 		if node == this_node or node == origin: continue
-		gevent.spawn(send_data, node, data, update)
+		gevent.spawn(send_data, node, data)
 		gevent.sleep(0)
 		
 
@@ -217,5 +217,5 @@ gevent.signal(signal.SIGINT, server.stop)
 server.start()
 
 populate_neighbour_latencies()
-schedule(60, propagate_neighbour_latencies)
+schedule(10, propagate_neighbour_latencies)
 server.serve_forever()
