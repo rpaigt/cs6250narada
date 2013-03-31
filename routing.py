@@ -1,4 +1,5 @@
 import sys, os, re, copy.deepcopy
+import networkx as nx
 
 class routing:
 	def __init__():
@@ -7,6 +8,7 @@ class routing:
 		self.cache={}#id,ip cache
 		self.timer=Timer #timer 																	#find
 		self.opt=False
+	
 	def checkRoute(route):#assume route updates are like (senderID, [(revnoceid, prevhopdistance),(,)])
 		nodeid=route[0]
 		nodevec=route[1]
@@ -25,10 +27,26 @@ class routing:
 			spantree=computeSpanningTree(graph)#same as above										#create
 			updateFwdTable(spantree, fwdtable)#find out where to send packet when it is received	#create
 			timer.reset()																			#find
+	
 	def sendData(data,destid):
 		ip=cache[fwdtable[destid]]
 		send(data, ip)
+	
 	def updateTimer():
 		#update
 		if(timer.longtimerexpire):
 			self.opt=True
+
+	def computeGraph(bestroutes):
+		G = nx.Graph()
+		G.add_nodes_from(bestroutes)
+		return G
+
+	def computeSpanningTree(graph):
+		T = nx.minimum_spanning_tree(G)
+		return T
+
+	def updateFwdTable(spantree, fwdtable):
+
+
+
