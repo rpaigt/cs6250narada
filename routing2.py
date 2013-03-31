@@ -89,10 +89,6 @@ def handle_update(update_data):
 		incoming_node = update_data[0]
 		incoming_node_ip = update_data[1]
 
-		print 'Handling update data: '
-		print incoming_node
-		print incoming_node_ip
-
 		if not incoming_node in ip_address_dict.keys():
 			ip_address_dict[incoming_node] = incoming_node_ip
 
@@ -109,9 +105,6 @@ def handle_update(update_data):
 def handle_route_vector(incoming_node, route_vector):
 	previous_node = incoming_node
 
-	print 'Route vector'
-	print route_vector
-
 	for (node, ip_address, delay) in route_vector:
 		if not node in ip_address_dict.keys():
 			ip_address_dict[node] = ip_address
@@ -123,7 +116,6 @@ def handle_route_vector(incoming_node, route_vector):
 
 def propagate_update(update_data):
 
-	print 'Propagate update'
 	if len(update_data) >= 2:
 		incoming_node = update_data[0]
 		incoming_node_ip = update_data[1]
@@ -135,15 +127,11 @@ def propagate_update(update_data):
 	data = json.dumps(data)
 	data = "UPDATE\n" + data
 
-	print 'Data to send for update'
-	print data
-
 	send_to_neighbours(data, origin=incoming_node)
 
 def handle_connection(socket, address):
 
 	data = socket.recv(1024)
-	print data
 	data = data.split('\n')
 
 	if data[0] == 'ECHO':
@@ -151,10 +139,7 @@ def handle_connection(socket, address):
 		socket.close()
 
 	elif data[0] == 'UPDATE':
-		print 'UPDATE Request: ',
 		data = json.loads(data[1])
-		print 'new data'
-		print data
 
 		handle_update(data)
 		propagate_update(data)
@@ -163,13 +148,12 @@ def handle_connection(socket, address):
 
 	elif data[0] == 'DATA':
 		print data[1:]
-
 		socket.close();
 
 	elif data[0] == 'STATUS':
 		socket.send(str(g.nodes()))
 		for a,b in g.edges():
-			socket.send(str(a) + str(b) + str(g[a][b]['weight']))
+			socket.send(str(a) + ' ' + str(b) + ' ' + str(g[a][b]['weight']) + '\n')
 		socket.close()
 
 	else:
