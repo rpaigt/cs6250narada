@@ -1,7 +1,7 @@
 import sys, math, os, copy, random, Queue
 import socket, datetime
 """
-assumptions--
+assumptions--Ok
    getLatency(id1,id2)//return stored latency
    computeLatency(id1, id2)//use sockets to compute the latency
 """
@@ -89,7 +89,7 @@ class Member:
         pass
         #use self.routing to receive, process and return data
 
-    # Right now it uses the ip address, but depending on how we map the nodes to the address this parameter can change.
+    # Right now it uses the ip address, but depending on how we map the nodes toOkOkOk the address this parameter can change.
     def ping_node(self, ipaddress):
         client = socket.socket()    
         client.settimeout(5)
