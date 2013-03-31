@@ -120,6 +120,7 @@ def handle_connection(socket, address):
 	data = data.split('\n')
 
 	if data[0] == 'ECHO':
+		print 'inside echo'
 		socket.send(data[0])
 		socket.close()
 
