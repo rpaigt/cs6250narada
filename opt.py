@@ -65,7 +65,7 @@ class Member:
                 self.routing.addlink(self.discmembers[0])
                 self.routing.refresh()
         self.sleep(10)
-
+"""
 	def listenForInput():
 		#blocking recieve in recvdata put into recvdata
 
@@ -107,8 +107,4 @@ class Member:
 
         client.close()
         return ((end - start) / 2).microseconds
-
-    
-
-
-
+"""
