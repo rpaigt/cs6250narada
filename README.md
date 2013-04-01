@@ -13,15 +13,16 @@ A,1.1.1.1
 B,2.2.2.2
 C,3.3.3.3
 
-these are the neighbours node names and ip addresses separated by a comma.
+these are the neighbours node names and ip addresses separated by a comma. The
+first line/node is the current host itself.
 
 neighbours.txt
 
 format
-A
 B
+C
 
-these are the adjacent nodes.
+these are the nodes adjacent to the current host.
 
 Create a network using some VM's and fill in the ip addresses. Add print statements wherever neccessary and figure out if the updates are propagating directly.
 

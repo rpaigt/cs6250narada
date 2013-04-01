@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import gevent
 import networkx as nx
 import datetime
@@ -7,6 +8,7 @@ from gevent import socket
 from gevent.server import StreamServer
 
 
+serverip = '127.0.0.1'
 port = 30000
 g = nx.Graph()
 
@@ -30,7 +32,6 @@ for node, ip in ip_node_mapping:
 
 
 neighbour_list = [n.strip() for n in neighbours]
-
 
 def send_data(node, data):
 	ip_address = ip_address_dict[node]
@@ -130,6 +131,7 @@ def propagate_update(update_data):
 	send_to_neighbours(data, origin=incoming_node)
 
 def handle_connection(socket, address):
+	print("new incoming connection from {}".format(address))
 
 	data = socket.recv(1024)
 	data = data.split('\n')
@@ -160,16 +162,22 @@ def handle_connection(socket, address):
 		print 'UNRECOG: '
 		print data
 
+
+#this function schedules a ping, ping_node() to each neighbour
 def populate_neighbour_latencies():
 	workers = []
 
+	#print "in schedule and neighbour_list is {}".format(neighbour_list) 
 	for node in neighbour_list:
+		#schedule run ping_node(node)
 		workers.append(gevent.spawn(ping_node, node))
+	#wait until all the workers are done with running the scheduled ping_node()?
 	gevent.joinall(workers)
 
 def update_graph():
 	pass
 
+#if this is called, it will run func every delay seconds indefinitely.
 def schedule(delay, func, *args, **kw_args):
     gevent.spawn_later(0, func, *args, **kw_args)
     gevent.spawn_later(delay, schedule, delay, func, *args, **kw_args)
@@ -190,16 +198,20 @@ def propagate_neighbour_latencies():
 			gevent.spawn(send_data, nodeS, data)
 
 
+def main():
+    server = StreamServer((serverip, port), handle_connection)
+    print 'Starting server on ip address {} and port: '.format(serverip) + str(port)
 
-server = StreamServer(('0.0.0.0', port), handle_connection)
-print 'Starting server on port: ' + str(port)
+    gevent.signal(signal.SIGTERM, server.stop)
+    gevent.signal(signal.SIGQUIT, server.stop)
+    gevent.signal(signal.SIGINT, server.stop)
 
-gevent.signal(signal.SIGTERM, server.stop)
-gevent.signal(signal.SIGQUIT, server.stop)
-gevent.signal(signal.SIGINT, server.stop)
+    server.start()
 
-server.start()
+    populate_neighbour_latencies()
 
-populate_neighbour_latencies()
-schedule(10, propagate_neighbour_latencies)
-server.serve_forever()
+    #send refresh messages every 10 seconds
+    schedule(10, propagate_neighbour_latencies)
+    server.serve_forever()
+
+if __name__ == "__main__": main()
