@@ -40,3 +40,7 @@ sudo apt-get install python-pip
 
 sudo pip install networkx
 sudo pip install gevent
+
+or alternatively for python libraries try:
+sudo easy_install gevent
+sudo easy_install networkx
