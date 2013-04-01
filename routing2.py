@@ -6,18 +6,33 @@ import json
 import signal
 from gevent import socket
 from gevent.server import StreamServer
-
+import argparse
 
 serverip = '127.0.0.1'
 port = 30000
+
+#parse command line arguments
+debug = False
+
+#parse some command line arguments
+parser = argparse.ArgumentParser(description='Start to listen and send refresh messsages')
+parser.add_argument('-d', '--debug', action='store_true', help='enable debugging output')
+args = parser.parse_args()
+if args.debug: 
+    debug = True
+    print("Debugging output enabled.")
+
 g = nx.Graph()
+
 
 
 with open('ipaddresses.txt') as f:
     ip_node_mapping = f.readlines()
+    if debug: print ("got ip_node_mapping as {}".format(ip_node_mapping))
 
 with open('neighbours.txt') as f:
 	neighbours = f.readlines()
+	if debug: print ("got neighbours as {}".format(neighbours))
 
 ip_address_dict = {}
 ip_node_mapping = [ip_node.strip().split(',') for ip_node in ip_node_mapping]
