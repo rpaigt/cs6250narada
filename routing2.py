@@ -8,12 +8,12 @@ from gevent import socket
 from gevent.server import StreamServer
 import argparse
 
-serverip = '127.0.0.1'
+serverip = '0.0.0.0' #change this only if debugging locally.
 port = 30000
+g = nx.Graph()
 
 #parse command line arguments
 debug = False
-
 #parse some command line arguments
 parser = argparse.ArgumentParser(description='Start to listen and send refresh messsages')
 parser.add_argument('-d', '--debug', action='store_true', help='enable debugging output')
@@ -22,7 +22,6 @@ if args.debug:
     debug = True
     print("Debugging output enabled.")
 
-g = nx.Graph()
 
 
 
@@ -65,9 +64,9 @@ def send_to_neighbours(data, origin):
 		
 
 def ping_node(node, update=True):
-	if debug: print("trying to ping node {}".format(node))
 	ip_address = ip_address_dict[node]
 	
+	if debug: print("trying to ping node {} at {}:{}".format(node, ip_address,port))
 	tries = 0
 	delay = 0
 	max_tries = 2
@@ -93,9 +92,9 @@ def ping_node(node, update=True):
 			if tries == max_tries:
 				delay = 9999
 
-	if update:
+	if update and not delay == 9999:
 			
-		if debug: print("adding edge {}--{}-->{} to graph".format(this_node, weight, node))
+		if debug: print("adding edge {}--{}-->{} to graph".format(this_node, delay, node))
 		g.add_node(node)
 		g.add_edge(this_node, node, weight=delay)
 
@@ -105,13 +104,16 @@ def ping_node(node, update=True):
 
 ## update_data = [neighbour, neighbourip, [node, nodeip, delay], ... ]
 def handle_update(update_data):
+	if debug: print("got update data of {}".format(update_data))
 	if len(update_data) >= 2:
 		incoming_node = update_data[0]
 		incoming_node_ip = update_data[1]
 
+		#if it's an entirely new node
 		if not incoming_node in ip_address_dict.keys():
 			ip_address_dict[incoming_node] = incoming_node_ip
 
+		#if it's a known node that's requesting to be neighbour
 		if not incoming_node in neighbour_list:
 			neighbour_list.append(incoming_node)
 
@@ -150,11 +152,11 @@ def propagate_update(update_data):
 	send_to_neighbours(data, origin=incoming_node)
 
 def handle_connection(socket, address):
-	print("new incoming connection from {}".format(address))
 
 	data = socket.recv(1024)
 	data = data.split('\n')
 
+	print("new incoming {} connection from {}".format(data[0],address))
 	if data[0] == 'ECHO':
 		socket.send(data[0])
 		socket.close()
@@ -186,7 +188,7 @@ def handle_connection(socket, address):
 def populate_neighbour_latencies():
 	workers = []
 
-	#print "in schedule and neighbour_list is {}".format(neighbour_list) 
+	if debug: print "in schedule and neighbour_list is {}".format(neighbour_list) 
 	for node in neighbour_list:
 		#schedule run ping_node(node)
 		workers.append(gevent.spawn(ping_node, node))
@@ -203,6 +205,7 @@ def schedule(delay, func, *args, **kw_args):
 
 def propagate_neighbour_latencies():
 	neighbours = g[this_node]
+	if debug: print("attempting propagating my list of latencies: {}".format(neighbours))
 
 	for nodeS in neighbours.keys():
 		weightS = neighbours[nodeS]['weight']
@@ -211,9 +214,11 @@ def propagate_neighbour_latencies():
 
 			if nodeS == nodeD: continue
 
+
 			data = [this_node, this_ip, [nodeD, ip_address_dict[nodeD], weightD]]
 			data = 'UPDATE\n' + json.dumps(data)
 
+			if debug: print("going to update {} with {}".format(nodeS, data))
 			gevent.spawn(send_data, nodeS, data)
 
 
@@ -227,10 +232,11 @@ def main():
 
     server.start()
 
-    populate_neighbour_latencies()
+    gevent.spawn_later(4, populate_neighbour_latencies)
+    #populate_neighbour_latencies()
 
     #send refresh messages every 10 seconds
-    schedule(10, propagate_neighbour_latencies)
+    schedule(5, propagate_neighbour_latencies)
     server.serve_forever()
 
 if __name__ == "__main__": main()
