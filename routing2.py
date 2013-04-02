@@ -65,6 +65,7 @@ def send_to_neighbours(data, origin):
 		
 
 def ping_node(node, update=True):
+	if debug: print("trying to ping node {}".format(node))
 	ip_address = ip_address_dict[node]
 	
 	tries = 0
@@ -93,9 +94,12 @@ def ping_node(node, update=True):
 				delay = 9999
 
 	if update:
+			
+		if debug: print("adding edge {}--{}-->{} to graph".format(this_node, weight, node))
 		g.add_node(node)
 		g.add_edge(this_node, node, weight=delay)
 
+	if debug: print("ping'd and measured a delay of {}".format(delay))
 	return delay
 
 
