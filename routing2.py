@@ -8,6 +8,8 @@ from gevent import socket
 from gevent.server import StreamServer
 import argparse
 
+
+MAX_DELAY = 9999
 port = 30000
 g = nx.Graph()
 
@@ -52,6 +54,8 @@ for node, ip in ip_node_mapping:
 neighbour_list = [n.strip() for n in neighbours]
 if debug: print ("got neighbours as {}".format(neighbour_list))
 
+disconnected_neighbours = {}
+
 def send_data(node, data):#sends data to node
 	ip_address = ip_address_dict[node]
 
@@ -79,9 +83,9 @@ def ping_node(node, update=True):#returns delay from self to node@ip_address:por
 
 	tries = 0
 	delay = 0
-	max_tries = 2
+	MAX_TRIES = 2
 
-	while tries < max_tries:
+	while tries < MAX_TRIES:
 		try:
 			client = socket.socket()
 			client.settimeout(5)
@@ -99,18 +103,25 @@ def ping_node(node, update=True):#returns delay from self to node@ip_address:por
 
 		except:
 			tries += 1
-			if tries == max_tries:
-				delay = 9999
+			if tries == MAX_TRIES:
+				delay = MAX_DELAY
 
 	if debug: 
 		print("Attempted to ping node {} at {}:{}".format(node, ip_address,port))
 		print("pinged and measured a delay of {}".format(delay))
 
-	if update: ## graph needs to be updated even if the ping time is 9999 since that indicates a connection being lost.		
-		if debug: 
-			print("adding edge {}--{}-->{} to graph".format(this_node, delay, node))
-		g.add_node(node)
-		g.add_edge(this_node, node, weight=delay)
+	if update: ## graph needs to be updated even if the ping time is MAX_DELAY since that indicates a connection being lost.		
+		if delay != MAX_DELAY:
+			if debug:
+				print("adding edge {}--{}-->{} to graph".format(this_node, delay, node))
+			g.add_node(node)
+			g.add_edge(this_node, node, weight=delay)
+
+			if node in disconnected_neighbours: disconnected_neighbours.pop(node, None)
+		elif delay == MAX_DELAY:
+			g.remove_edge(this_node, node)
+			disconnected_neighbours[this_node] = 1
+
 		
 
 	return delay
@@ -134,6 +145,9 @@ def handle_update(update_data):
 		if not g[this_node].has_key(incoming_node):
 			ping_node(incoming_node)
 
+		if incoming_node in disconnected_neighbours:
+			disconnected_neighbours.pop(incoming_node, None)
+
 
 		if len(update_data) > 2:
 			handle_route_vector(incoming_node, update_data[2:])
@@ -145,8 +159,12 @@ def handle_route_vector(incoming_node, route_vector):
 		if not node in ip_address_dict.keys():
 			ip_address_dict[node] = ip_address
 
-		g.add_node(node)
-		g.add_edge(previous_node, node, weight=delay)
+
+		if delay != MAX_DELAY:
+			g.add_node(node)
+			g.add_edge(previous_node, node, weight=delay)
+		else:
+			g.remove_edge(previous_node, node)
 
 		previous_node = node
 
@@ -238,6 +256,14 @@ def propagate_neighbour_latencies():
 
 			if debug: print("going to update {} with {}".format(nodeS, data))
 			gevent.spawn(send_data, nodeS, data)
+
+		for nodeD in disconnected_neighbours:
+
+			data = [this_node, this_ip, [node, ip_address_dict[nodeD], MAX_DELAY]]
+			data = 'UPDATE\n' + json.dumps(data)
+
+			if debug: print("going to update disconnected nodes {} with {}".format(nodeD, data))
+				gevent.spawn(send_data, nodeS, data)
 
 
 def main():
