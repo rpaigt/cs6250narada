@@ -276,7 +276,7 @@ def main():
 
     server.start()
 
-    #Ping neighbours regularly to check if up
+    #Ping neighbours regularly to check if up 
     schedule(5, populate_neighbour_latencies)
 
 
