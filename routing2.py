@@ -176,9 +176,13 @@ def handle_connection(socket, address):
 		socket.close();
 
 	elif data[0] == 'STATUS':
-		socket.send(str(g.nodes()))
+		status += 'Node: ' + this_node + '\n'
+		status += 'Connected nodes: ' + str(g.nodes()) + '\n'
+
 		for a,b in g.edges():
-			socket.send(str(a) + ' ' + str(b) + ' ' + str(g[a][b]['weight']) + '\n')
+			status += str(a) + ' ' + str(b) + ' ' + str(g[a][b]['weight']) + '\n'
+
+		socket.send(status)
 		socket.close()
 
 	else:
@@ -234,11 +238,14 @@ def main():
 
     server.start()
 
-    gevent.spawn_later(2, populate_neighbour_latencies)
-    #populate_neighbour_latencies()
+    #Ping neighbours regularly to check if up
+	schedule(5, populate_neighbour_latencies())
 
-    #send refresh messages every 10 seconds
+
+    #send update messages every 10 seconds
     schedule(10, propagate_neighbour_latencies)
+	
+
     server.serve_forever()
 
 if __name__ == "__main__":
