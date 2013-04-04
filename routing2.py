@@ -8,7 +8,6 @@ from gevent import socket
 from gevent.server import StreamServer
 import argparse
 
-serverip = '0.0.0.0' #change this only if debugging locally.
 port = 30000
 g = nx.Graph()
 
@@ -38,9 +37,13 @@ if debug: print ("got ip_node_mapping as {}".format(ip_node_mapping))
 
 
 this_node = ip_node_mapping[0][0]	# First entry in the ipaddress file is the host node and ip pair
+
 this_ip = ip_node_mapping[0][1]
+serverip = this_ip
 
 g.add_node(this_node)
+
+
 
 for node, ip in ip_node_mapping:
 	ip_address_dict[node] = ip
@@ -239,7 +242,7 @@ def main():
     server.start()
 
     #Ping neighbours regularly to check if up
-	schedule(5, populate_neighbour_latencies())
+    schedule(5, populate_neighbour_latencies)
 
 
     #send update messages every 10 seconds
