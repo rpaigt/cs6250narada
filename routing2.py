@@ -27,14 +27,15 @@ if args.debug:
 
 with open('ipaddresses.txt') as f:
     ip_node_mapping = f.readlines()
-    if debug: print ("got ip_node_mapping as {}".format(ip_node_mapping))
-
+    
 with open('neighbours.txt') as f:
 	neighbours = f.readlines()
-	if debug: print ("got neighbours as {}".format(neighbours))
+	
 
 ip_address_dict = {}
 ip_node_mapping = [ip_node.strip().split(',') for ip_node in ip_node_mapping]
+if debug: print ("got ip_node_mapping as {}".format(ip_node_mapping))
+
 
 this_node = ip_node_mapping[0][0]	# First entry in the ipaddress file is the host node and ip pair
 this_ip = ip_node_mapping[0][1]
@@ -46,6 +47,7 @@ for node, ip in ip_node_mapping:
 
 
 neighbour_list = [n.strip() for n in neighbours]
+if debug: print ("got neighbours as {}".format(neighbours))
 
 def send_data(node, data):#sends data to node
 	ip_address = ip_address_dict[node]
