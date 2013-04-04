@@ -47,7 +47,7 @@ for node, ip in ip_node_mapping:
 
 neighbour_list = [n.strip() for n in neighbours]
 
-def send_data(node, data):
+def send_data(node, data):#sends data to node
 	ip_address = ip_address_dict[node]
 	client = socket.socket()
 	client.connect((ip_address, port))
@@ -56,14 +56,14 @@ def send_data(node, data):
 	gevent.sleep(0)
 	client.close()
 
-def send_to_neighbours(data, origin):
+def send_to_neighbours(data, origin):#propagates to all neighbours except origin
 	for node in neighbour_list:
 		if node == this_node or node == origin: continue
 		gevent.spawn(send_data, node, data)
 		gevent.sleep(0)
 		
 
-def ping_node(node, update=True):
+def ping_node(node, update=True):#returns delay from self to node@ip_address:port
 	ip_address = ip_address_dict[node]
 	
 	if debug: print("trying to ping node {} at {}:{}".format(node, ip_address,port))
