@@ -107,7 +107,7 @@ def ping_node(node, update=True):#returns delay from self to node@ip_address:por
 				delay = MAX_DELAY
 
 	if debug: 
-		print("Attempted to ping node {} at {}:{}".format(node, ip_address,port))
+		print("attempted to ping node {} at {}:{}".format(node, ip_address,port))
 		print("pinged and measured a delay of {}".format(delay))
 
 	if update: ## graph needs to be updated even if the ping time is MAX_DELAY since that indicates a connection being lost.		
@@ -119,7 +119,8 @@ def ping_node(node, update=True):#returns delay from self to node@ip_address:por
 
 			if node in disconnected_neighbours: disconnected_neighbours.pop(node, None)
 		elif delay == MAX_DELAY:
-			g.remove_edge(this_node, node)
+			if node in g[this_node]:
+				g.remove_edge(this_node, node)
 			disconnected_neighbours[this_node] = 1
 
 		
@@ -164,7 +165,8 @@ def handle_route_vector(incoming_node, route_vector):
 			g.add_node(node)
 			g.add_edge(previous_node, node, weight=delay)
 		else:
-			g.remove_edge(previous_node, node)
+			if node in g[previous_node]:
+				g.remove_edge(previous_node, node)
 
 		previous_node = node
 
@@ -262,8 +264,9 @@ def propagate_neighbour_latencies():
 			data = [this_node, this_ip, [node, ip_address_dict[nodeD], MAX_DELAY]]
 			data = 'UPDATE\n' + json.dumps(data)
 
-			if debug: print("going to update disconnected nodes {} with {}".format(nodeD, data)):
-				gevent.spawn(send_data, nodeS, data)
+			if debug: print("going to update disconnected nodes {} with {}".format(nodeD, data))
+			
+			gevent.spawn(send_data, nodeS, data)
 
 
 def main():
