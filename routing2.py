@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import gevent
 import networkx as nx
 import datetime
@@ -5,17 +6,32 @@ import json
 import signal
 from gevent import socket
 from gevent.server import StreamServer
+import argparse
 
-
+serverip = '0.0.0.0' #change this only if debugging locally.
 port = 30000
 g = nx.Graph()
+
+#parse command line arguments
+debug = False
+#parse some command line arguments
+parser = argparse.ArgumentParser(description='Start to listen and send refresh messsages')
+parser.add_argument('-d', '--debug', action='store_true', help='enable debugging output')
+args = parser.parse_args()
+if args.debug: 
+    debug = True
+    print("Debugging output enabled.")
+
+
 
 
 with open('ipaddresses.txt') as f:
     ip_node_mapping = f.readlines()
+    if debug: print ("got ip_node_mapping as {}".format(ip_node_mapping))
 
 with open('neighbours.txt') as f:
 	neighbours = f.readlines()
+	if debug: print ("got neighbours as {}".format(neighbours))
 
 ip_address_dict = {}
 ip_node_mapping = [ip_node.strip().split(',') for ip_node in ip_node_mapping]
@@ -31,8 +47,7 @@ for node, ip in ip_node_mapping:
 
 neighbour_list = [n.strip() for n in neighbours]
 
-
-def send_data(node, data):
+def send_data(node, data):#sends data to node
 	ip_address = ip_address_dict[node]
 	client = socket.socket()
 	client.connect((ip_address, port))
@@ -41,16 +56,17 @@ def send_data(node, data):
 	gevent.sleep(0)
 	client.close()
 
-def send_to_neighbours(data, origin):
+def send_to_neighbours(data, origin):#propagates to all neighbours except origin
 	for node in neighbour_list:
 		if node == this_node or node == origin: continue
 		gevent.spawn(send_data, node, data)
 		gevent.sleep(0)
 		
 
-def ping_node(node, update=True):
+def ping_node(node, update=True):#returns delay from self to node@ip_address:port
 	ip_address = ip_address_dict[node]
 	
+	if debug: print("trying to ping node {} at {}:{}".format(node, ip_address,port))
 	tries = 0
 	delay = 0
 	max_tries = 2
@@ -76,26 +92,28 @@ def ping_node(node, update=True):
 			if tries == max_tries:
 				delay = 9999
 
-	if update:
+	if update and not delay == 9999:
+			
+		if debug: print("adding edge {}--{}-->{} to graph".format(this_node, delay, node))
 		g.add_node(node)
 		g.add_edge(this_node, node, weight=delay)
 
+	if debug: print("pinged and measured a delay of {}".format(delay))
 	return delay
 
 
 ## update_data = [neighbour, neighbourip, [node, nodeip, delay], ... ]
 def handle_update(update_data):
+	if debug: print("got update data of {}".format(update_data))
 	if len(update_data) >= 2:
 		incoming_node = update_data[0]
 		incoming_node_ip = update_data[1]
 
-		print 'Handling update data: '
-		print incoming_node
-		print incoming_node_ip
-
+		#if it's an entirely new node
 		if not incoming_node in ip_address_dict.keys():
 			ip_address_dict[incoming_node] = incoming_node_ip
 
+		#if it's a known node that's requesting to be neighbour
 		if not incoming_node in neighbour_list:
 			neighbour_list.append(incoming_node)
 
@@ -109,9 +127,6 @@ def handle_update(update_data):
 def handle_route_vector(incoming_node, route_vector):
 	previous_node = incoming_node
 
-	print 'Route vector'
-	print route_vector
-
 	for (node, ip_address, delay) in route_vector:
 		if not node in ip_address_dict.keys():
 			ip_address_dict[node] = ip_address
@@ -123,7 +138,6 @@ def handle_route_vector(incoming_node, route_vector):
 
 def propagate_update(update_data):
 
-	print 'Propagate update'
 	if len(update_data) >= 2:
 		incoming_node = update_data[0]
 		incoming_node_ip = update_data[1]
@@ -135,26 +149,20 @@ def propagate_update(update_data):
 	data = json.dumps(data)
 	data = "UPDATE\n" + data
 
-	print 'Data to send for update'
-	print data
-
 	send_to_neighbours(data, origin=incoming_node)
 
 def handle_connection(socket, address):
 
 	data = socket.recv(1024)
-	print data
 	data = data.split('\n')
 
+	print("new incoming {} connection from {}".format(data[0],address))
 	if data[0] == 'ECHO':
 		socket.send(data[0])
 		socket.close()
 
 	elif data[0] == 'UPDATE':
-		print 'UPDATE Request: ',
 		data = json.loads(data[1])
-		print 'new data'
-		print data
 
 		handle_update(data)
 		propagate_update(data)
@@ -163,35 +171,41 @@ def handle_connection(socket, address):
 
 	elif data[0] == 'DATA':
 		print data[1:]
-
 		socket.close();
 
 	elif data[0] == 'STATUS':
 		socket.send(str(g.nodes()))
 		for a,b in g.edges():
-			socket.send(str(a) + str(b) + str(g[a][b]['weight']))
+			socket.send(str(a) + ' ' + str(b) + ' ' + str(g[a][b]['weight']) + '\n')
 		socket.close()
 
 	else:
 		print 'UNRECOG: '
 		print data
 
+
+#this function pings each of its neighbours
 def populate_neighbour_latencies():
 	workers = []
 
+	if debug: print "in schedule and neighbour_list is {}".format(neighbour_list) 
 	for node in neighbour_list:
+		#schedule run ping_node(node)
 		workers.append(gevent.spawn(ping_node, node))
+	#wait until all the workers are done with running the scheduled ping_node()
 	gevent.joinall(workers)
 
 def update_graph():
 	pass
 
+#call func at every delay seconds
 def schedule(delay, func, *args, **kw_args):
     gevent.spawn_later(0, func, *args, **kw_args)
     gevent.spawn_later(delay, schedule, delay, func, *args, **kw_args)
 
 def propagate_neighbour_latencies():
 	neighbours = g[this_node]
+	if debug: print("attempting propagating my list of latencies: {}".format(neighbours))
 
 	for nodeS in neighbours.keys():
 		weightS = neighbours[nodeS]['weight']
@@ -200,22 +214,30 @@ def propagate_neighbour_latencies():
 
 			if nodeS == nodeD: continue
 
+
 			data = [this_node, this_ip, [nodeD, ip_address_dict[nodeD], weightD]]
 			data = 'UPDATE\n' + json.dumps(data)
 
+			if debug: print("going to update {} with {}".format(nodeS, data))
 			gevent.spawn(send_data, nodeS, data)
 
 
+def main():
+    server = StreamServer((serverip, port), handle_connection)
+    print 'Starting server on ip address {} and port: '.format(serverip) + str(port)
 
-server = StreamServer(('0.0.0.0', port), handle_connection)
-print 'Starting server on port: ' + str(port)
+    gevent.signal(signal.SIGTERM, server.stop)
+    gevent.signal(signal.SIGQUIT, server.stop)
+    gevent.signal(signal.SIGINT, server.stop)
 
-gevent.signal(signal.SIGTERM, server.stop)
-gevent.signal(signal.SIGQUIT, server.stop)
-gevent.signal(signal.SIGINT, server.stop)
+    server.start()
 
-server.start()
+    gevent.spawn_later(2, populate_neighbour_latencies)
+    #populate_neighbour_latencies()
 
-populate_neighbour_latencies()
-schedule(10, propagate_neighbour_latencies)
-server.serve_forever()
+    #send refresh messages every 10 seconds
+    schedule(10, propagate_neighbour_latencies)
+    server.serve_forever()
+
+if __name__ == "__main__":
+	main()
