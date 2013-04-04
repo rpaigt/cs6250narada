@@ -98,7 +98,7 @@ def ping_node(node, update=True):
 		g.add_node(node)
 		g.add_edge(this_node, node, weight=delay)
 
-	if debug: print("ping'd and measured a delay of {}".format(delay))
+	if debug: print("pinged and measured a delay of {}".format(delay))
 	return delay
 
 
@@ -184,7 +184,7 @@ def handle_connection(socket, address):
 		print data
 
 
-#this function schedules a ping, ping_node() to each neighbour
+#this function pings each of its neighbours
 def populate_neighbour_latencies():
 	workers = []
 
@@ -192,13 +192,13 @@ def populate_neighbour_latencies():
 	for node in neighbour_list:
 		#schedule run ping_node(node)
 		workers.append(gevent.spawn(ping_node, node))
-	#wait until all the workers are done with running the scheduled ping_node()?
+	#wait until all the workers are done with running the scheduled ping_node()
 	gevent.joinall(workers)
 
 def update_graph():
 	pass
 
-#if this is called, it will run func every delay seconds indefinitely.
+#call func at every delay seconds
 def schedule(delay, func, *args, **kw_args):
     gevent.spawn_later(0, func, *args, **kw_args)
     gevent.spawn_later(delay, schedule, delay, func, *args, **kw_args)
@@ -232,11 +232,12 @@ def main():
 
     server.start()
 
-    gevent.spawn_later(4, populate_neighbour_latencies)
+    gevent.spawn_later(2, populate_neighbour_latencies)
     #populate_neighbour_latencies()
 
     #send refresh messages every 10 seconds
-    schedule(5, propagate_neighbour_latencies)
+    schedule(10, propagate_neighbour_latencies)
     server.serve_forever()
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+	main()
