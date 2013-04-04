@@ -47,7 +47,7 @@ for node, ip in ip_node_mapping:
 
 
 neighbour_list = [n.strip() for n in neighbours]
-if debug: print ("got neighbours as {}".format(neighbours))
+if debug: print ("got neighbours as {}".format(neighbour_list))
 
 def send_data(node, data):#sends data to node
 	ip_address = ip_address_dict[node]
