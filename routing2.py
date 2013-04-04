@@ -262,7 +262,7 @@ def propagate_neighbour_latencies():
 			data = [this_node, this_ip, [node, ip_address_dict[nodeD], MAX_DELAY]]
 			data = 'UPDATE\n' + json.dumps(data)
 
-			if debug: print("going to update disconnected nodes {} with {}".format(nodeD, data))
+			if debug: print("going to update disconnected nodes {} with {}".format(nodeD, data)):
 				gevent.spawn(send_data, nodeS, data)
 
 
