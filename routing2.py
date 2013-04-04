@@ -54,12 +54,18 @@ if debug: print ("got neighbours as {}".format(neighbour_list))
 
 def send_data(node, data):#sends data to node
 	ip_address = ip_address_dict[node]
-	client = socket.socket()
-	client.connect((ip_address, port))
 
-	client.send(data)
-	gevent.sleep(0)
-	client.close()
+	client = socket.socket()
+	try:
+		client.connect((ip_address, port))
+
+		sent_bytes = client.send(data)
+		gevent.sleep(0)
+		client.close()
+		return sent_bytes
+	except:
+		if debug: "sending data to {}, {} failed".format(node, data)
+		return -1
 
 def send_to_neighbours(data, origin):#propagates to all neighbours except origin
 	for node in neighbour_list:
@@ -70,8 +76,7 @@ def send_to_neighbours(data, origin):#propagates to all neighbours except origin
 
 def ping_node(node, update=True):#returns delay from self to node@ip_address:port
 	ip_address = ip_address_dict[node]
-	
-	if debug: print("trying to ping node {} at {}:{}".format(node, ip_address,port))
+
 	tries = 0
 	delay = 0
 	max_tries = 2
@@ -97,13 +102,17 @@ def ping_node(node, update=True):#returns delay from self to node@ip_address:por
 			if tries == max_tries:
 				delay = 9999
 
-	if update and not delay == 9999:
-			
-		if debug: print("adding edge {}--{}-->{} to graph".format(this_node, delay, node))
+	if debug: 
+		print("Attempted to ping node {} at {}:{}".format(node, ip_address,port))
+		print("pinged and measured a delay of {}".format(delay))
+
+	if update: ## graph needs to be updated even if the ping time is 9999 since that indicates a connection being lost.		
+		if debug: 
+			print("adding edge {}--{}-->{} to graph".format(this_node, delay, node))
 		g.add_node(node)
 		g.add_edge(this_node, node, weight=delay)
+		
 
-	if debug: print("pinged and measured a delay of {}".format(delay))
 	return delay
 
 
