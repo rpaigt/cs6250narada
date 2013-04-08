@@ -10,7 +10,11 @@ import argparse
 
 
 MAX_DELAY = 9999
+
+serverip = '0.0.0.0'
 port = 30000
+
+
 g = nx.Graph()
 
 #parse command line arguments
@@ -39,11 +43,9 @@ if debug: print ("got ip_node_mapping as {}".format(ip_node_mapping))
 
 
 this_node = ip_node_mapping[0][0]	# First entry in the ipaddress file is the host node and ip pair
-
 this_ip = ip_node_mapping[0][1]
-serverip = this_ip
 
-g.add_node(this_node)
+g.add_node(this_node) ## g[this_node] is setup.
 
 
 
@@ -223,13 +225,21 @@ def handle_connection(socket, address):
 
 
 #this function pings each of its neighbours
-def populate_neighbour_latencies():
+def populate_neighbour_latencies(only_ping_dead=False):
 	workers = []
 
-	if debug: print "in schedule and neighbour_list is {}".format(neighbour_list) 
+	if debug and not only_ping_dead:
+		print "in schedule and neighbour_list is {}".format(neighbour_list) 
+
+	#schedule run ping_node(node)
 	for node in neighbour_list:
-		#schedule run ping_node(node)
-		workers.append(gevent.spawn(ping_node, node))
+
+		if only_ping_dead:
+			if node not in g[this_node]:
+				if debug: print "Pinging dead neighbour {}".format(node) 
+				workers.append(gevent.spawn(ping_node, node))
+		else:
+			workers.append(gevent.spawn(ping_node, node))
 	#wait until all the workers are done with running the scheduled ping_node()
 	gevent.joinall(workers)
 
@@ -240,6 +250,8 @@ def update_graph():
 def schedule(delay, func, *args, **kw_args):
     gevent.spawn_later(0, func, *args, **kw_args)
     gevent.spawn_later(delay, schedule, delay, func, *args, **kw_args)
+
+
 
 def propagate_neighbour_latencies():
 	neighbours = g[this_node]
@@ -268,7 +280,14 @@ def propagate_neighbour_latencies():
 			
 			gevent.spawn(send_data, nodeS, data)
 
+def populate_and_propogate():
+	populate_neighbour_latencies()
+	propagate_neighbour_latencies()
+	generate_spanning_tree()
 
+def generate_spanning_tree():
+	mst = nx.minimum_spanning_tree(g)
+	
 
 def get_curtime():#stub, needs to be implemented
 	pass
@@ -368,7 +387,6 @@ def optimiseall():#called every T seconds
 		if utility_dict(node)[1] < cost:
 			utility_dict(node)[1] = cost
 
-	
 
 def main():
     server = StreamServer((serverip, port), handle_connection)
@@ -380,12 +398,9 @@ def main():
 
     server.start()
 
-    #Ping neighbours regularly to check if up 
-    schedule(5, populate_neighbour_latencies)
-
-
     #send update messages every 10 seconds
-    schedule(10, propagate_neighbour_latencies)
+    schedule(60, populate_and_propogate)
+    schedule(10, populate_neighbour_latencies, only_ping_dead=True)
 	
 
     server.serve_forever()
