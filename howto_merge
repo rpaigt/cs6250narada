@@ -1,0 +1,21 @@
+first checkout the receiving branch. make sure it's updated, git fetch/pull
+first. 
+
+then git merge [the giving branch] and optionally git push to remote
+
+e.g. to merge in some new changes in master into integrate-ns3:
+#update master first
+git checkout master
+git pull
+#do the merge
+git checkout integrate-ns3
+git merge master
+git push 
+
+example 2: to merge in integrate-ns3 into master:
+git checkout master
+git merge integrate-ns3
+git push 
+
+remember that git push and git pull depends on your current branch
+
