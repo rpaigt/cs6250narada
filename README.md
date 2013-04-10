@@ -1,7 +1,7 @@
 cs6250narada
 ============
 
-Implementation of narada platform
+implementation of narada platform
 
 
 Need two files in the same folder as script to run the program.
