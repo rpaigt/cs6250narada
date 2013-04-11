@@ -25,6 +25,10 @@ done
 
 #run simulation
 cd $NSPATH
+export NS_LOG=
+if [ $1 == "-v" ]; then
+    export NS_LOG="*=level_all|prefix_func|prefix_time"
+fi
+    
 #logging variable, modify this accordingly
-export NS_LOG=""
 ./waf --pyrun scratch/sim.py
