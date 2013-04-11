@@ -10,7 +10,11 @@ import argparse
 
 
 MAX_DELAY = 9999
+
+serverip = '0.0.0.0'
 port = 30000
+
+
 g = nx.Graph()
 
 #parse command line arguments
@@ -39,11 +43,9 @@ if debug: print ("got ip_node_mapping as {}".format(ip_node_mapping))
 
 
 this_node = ip_node_mapping[0][0]	# First entry in the ipaddress file is the host node and ip pair
-
 this_ip = ip_node_mapping[0][1]
-serverip = this_ip
 
-g.add_node(this_node)
+g.add_node(this_node) ## g[this_node] is setup.
 
 
 
@@ -107,7 +109,7 @@ def ping_node(node, update=True):#returns delay from self to node@ip_address:por
 				delay = MAX_DELAY
 
 	if debug: 
-		print("Attempted to ping node {} at {}:{}".format(node, ip_address,port))
+		print("attempted to ping node {} at {}:{}".format(node, ip_address,port))
 		print("pinged and measured a delay of {}".format(delay))
 
 	if update: ## graph needs to be updated even if the ping time is MAX_DELAY since that indicates a connection being lost.		
@@ -119,7 +121,8 @@ def ping_node(node, update=True):#returns delay from self to node@ip_address:por
 
 			if node in disconnected_neighbours: disconnected_neighbours.pop(node, None)
 		elif delay == MAX_DELAY:
-			g.remove_edge(this_node, node)
+			if node in g[this_node]:
+				g.remove_edge(this_node, node)
 			disconnected_neighbours[this_node] = 1
 
 		
@@ -164,7 +167,8 @@ def handle_route_vector(incoming_node, route_vector):
 			g.add_node(node)
 			g.add_edge(previous_node, node, weight=delay)
 		else:
-			g.remove_edge(previous_node, node)
+			if node in g[previous_node]:
+				g.remove_edge(previous_node, node)
 
 		previous_node = node
 
@@ -221,13 +225,21 @@ def handle_connection(socket, address):
 
 
 #this function pings each of its neighbours
-def populate_neighbour_latencies():
+def populate_neighbour_latencies(only_ping_dead=False):
 	workers = []
 
-	if debug: print "in schedule and neighbour_list is {}".format(neighbour_list) 
+	if debug and not only_ping_dead:
+		print "in schedule and neighbour_list is {}".format(neighbour_list) 
+
+	#schedule run ping_node(node)
 	for node in neighbour_list:
-		#schedule run ping_node(node)
-		workers.append(gevent.spawn(ping_node, node))
+
+		if only_ping_dead:
+			if node not in g[this_node]:
+				if debug: print "Pinging dead neighbour {}".format(node) 
+				workers.append(gevent.spawn(ping_node, node))
+		else:
+			workers.append(gevent.spawn(ping_node, node))
 	#wait until all the workers are done with running the scheduled ping_node()
 	gevent.joinall(workers)
 
@@ -238,6 +250,8 @@ def update_graph():
 def schedule(delay, func, *args, **kw_args):
     gevent.spawn_later(0, func, *args, **kw_args)
     gevent.spawn_later(delay, schedule, delay, func, *args, **kw_args)
+
+
 
 def propagate_neighbour_latencies():
 	neighbours = g[this_node]
@@ -262,10 +276,18 @@ def propagate_neighbour_latencies():
 			data = [this_node, this_ip, [node, ip_address_dict[nodeD], MAX_DELAY]]
 			data = 'UPDATE\n' + json.dumps(data)
 
-			if debug: print("going to update disconnected nodes {} with {}".format(nodeD, data)):
-				gevent.spawn(send_data, nodeS, data)
+			if debug: print("going to update disconnected nodes {} with {}".format(nodeD, data))
+			
+			gevent.spawn(send_data, nodeS, data)
 
+def populate_and_propogate():
+	populate_neighbour_latencies()
+	propagate_neighbour_latencies()
+	generate_spanning_tree()
 
+def generate_spanning_tree():
+	mst = nx.minimum_spanning_tree(g)
+	
 
 def get_curtime():#stub, needs to be implemented
 	pass
@@ -274,78 +296,97 @@ def get_curtime():#stub, needs to be implemented
 def sleep_repair():#stub, sleep for a while, use gevent to call it after k time or just call mesh_repair in a separate thread
 	pass
 
-update_dict={}#stores last_time_node_was_updated as value
-utility_dict={}#stores utility of node
+update_dict = {}#stores last_time_node_was_updated as value
+utility_dict = {}#stores utility of node
 
 def get_node_utility(trynode):
-	utility=0
-	path=nx.all_pairs_shortest_path(g)
+	utility = 0
+	path = nx.all_pairs_shortest_path(g)
 	for node in fwd_table.keys():
-		if (node==this_node):
+		if (node == this_node):
 			pass
 		else:
-			oldlat=path[this_node][node]
-			newlat=path[this_node][trynode] + path[trynode][node]
-			if(newlat<oldlat):
-				utility=utility+((oldlat-newlat)/oldlat)	
+			oldlat = path[this_node][node]
+			newlat = path[this_node][trynode] + path[trynode][node]
+			if(newlat < oldlat):
+				utility = utility + ((oldlat - newlat) / oldlat)
+
 	return utility
 
 def get_mutual_cost(trynode):
-	count1=0
-	count2=0
-	f2=get_fwdtable(trynode)
-	f1=fwd_table
+	count1 = 0
+	count2 = 0
+	f2 = get_fwdtable(trynode)
+	f1 = fwd_table
+
 	for i in f1.keys():
-		if(f1[keys]==trynode):
-			count1=count1+1
+		if f1[keys] == trynode:
+			count1 = count1 + 1
+
 	for j in f2.keys():
-		if(f2[keys]==this_node):
-			count2=count2+1
+		if f2[keys] == this_node:
+			count2 = count2+1
+
 	return max(count1, count2)
 
 def mesh_repair():#called every T intervals
-	T=1000#timeout, now need to repair these nodes since they did nto update for T
-	while(1):
-		curtime=get_curtime()
-		update_list=[]
+	T = 1000#timeout, now need to repair these nodes since they did nto update for T
+
+	while(True): ## We can just call mesh repair at regular intervals. Does this need to be while(true)?
+		curtime = get_curtime()
+		update_list = []
+
 		for e in update_dict.keys():
-			if((update_dict[e]-curtime)>=T):
+			if (update_dict[e] - curtime) >= T:
 				update_list.append(e,update_dict[e])
-		update_list=sorted(update_list,key=lambda e:e[1])
-		while(len(update_list) and (update_list[0]>=T)):
-			temp=update_list.pop(0)
-			delay=ping_node(temp,update=False)
-			if(delay!=99999):
-				update_dict[temp]=0
-				if(nx.path.bidirectional_dijkstra(g,this_node,temp)):
+
+		update_list = sorted(update_list, key=lambda e: e[1])
+
+		while(len(update_list) and (update_list[0] >= T)):
+			temp = update_list.pop(0)
+			delay = ping_node(temp, update=False)
+
+			if(delay != MAX_DELAY):
+				update_dict[temp] = 0
+
+				if(nx.path.bidirectional_dijkstra(g, this_node, temp)):
 					g.add_node(temp)
-				g.add_edge(this_node,temp,weight=delay)
-		if(len(update_list)):
-			prob=len(update_list)/len(update_dict)
-			if (random.random()>=(1-prob)):
-				temp=update_list.pop(0)
-				delay=ping_node(temp,update=False)
-				if(delay!=99999):
-					update_dict[temp]=0
-					if(nx.path.bidirectional_dijkstra(g,this_node,temp)):
+
+				g.add_edge(this_node, temp, weight=delay)
+
+		if len(update_list):
+			prob = len(update_list) / len(update_dict)
+
+			if random.random() >= (1-prob):
+				temp = update_list.pop(0)
+				delay = ping_node(temp, update=False)
+
+				if(delay!=MAX_DELAY):
+					update_dict[temp] = 0
+					if nx.path.bidirectional_dijkstra(g, this_node, temp):
 						g.add_node(temp)
-					g.add_edge(this_node,temp,weight=delay)
+					g.add_edge(this_node, temp, weight=delay)
+
 		sleep_repair(time)	
 
 def optimiseall():#called every T seconds
 	mesh_repair()
-	for node in update_dict.keys():
-		if(not utility_dict.has_key(node)):
-			utility_dict[node]=[0,0]
-		utility=get_node_utility(node)
-		if(utility_dict(node)[0]<utility):
-			utility_dict(node)[0]=utility
-	for node in update_dict.keys():
-		cost=get_mutual_cost(node)
-		if(utility_dict(node)[1]<cost):
-			utility_dict(node)[1]=cost
 
-	
+	for node in update_dict.keys():
+		if not utility_dict.has_key(node):
+			utility_dict[node] = [0,0]
+		
+		utility = get_node_utility(node)
+		
+		if utility_dict(node)[0] < utility:
+			utility_dict(node)[0] = utility
+
+	for node in update_dict.keys():
+		cost = get_mutual_cost(node)
+		
+		if utility_dict(node)[1] < cost:
+			utility_dict(node)[1] = cost
+
 
 def main():
     server = StreamServer((serverip, port), handle_connection)
@@ -357,12 +398,9 @@ def main():
 
     server.start()
 
-    #Ping neighbours regularly to check if up 
-    schedule(5, populate_neighbour_latencies)
-
-
     #send update messages every 10 seconds
-    schedule(10, propagate_neighbour_latencies)
+    schedule(60, populate_and_propogate)
+    schedule(10, populate_neighbour_latencies, only_ping_dead=True)
 	
 
     server.serve_forever()
