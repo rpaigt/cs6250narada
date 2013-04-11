@@ -13,14 +13,33 @@
 #  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #  */
 
-import ns.applications
+#it seems like to translate C++ import to python import, you take the prefix
+#compare this to $NSPATH/examples/tutorial/first.cc
 import ns.core
-import ns.internet
 import ns.network
+import ns.csma
+import ns.internet
 import ns.point_to_point
+import ns.applications
+#import ns.ipv4_global_routing_helper #doesn't exist in python binding yet
 
-ns.core.LogComponentEnable("UdpEchoClientApplication", ns.core.LOG_LEVEL_INFO)
-ns.core.LogComponentEnable("UdpEchoServerApplication", ns.core.LOG_LEVEL_INFO)
+class Narada(ns.network.Application):
+    def StartApplication(self):
+	print("Hi!")
+
+    def StopApplication(self):
+	print("Bye!")
+
+    #def DoStart(self):
+	#print("In dostart")
+	#super(Narada, self).SetStartTime(t)
+#Switching between these 2 and compare log.out,
+#with udp echo, it recognises the starttime, but not narada.
+#going to examine how udpechoclient was written vs Narada was written
+nar = Narada()
+nar2 = Narada()
+#nar = ns.applications.UdpEchoClient()
+#nar2 = ns.applications.UdpEchoClient()
 
 nodes = ns.network.NodeContainer()
 nodes.Create(2)
@@ -39,20 +58,15 @@ address.SetBase(ns.network.Ipv4Address("10.1.1.0"), ns.network.Ipv4Mask("255.255
 
 interfaces = address.Assign (devices);
 
-echoServer = ns.applications.UdpEchoServerHelper(9)
+nodes.Get(1).AddApplication(nar)
+nodes.Get(0).AddApplication(nar2)
 
-serverApps = echoServer.Install(nodes.Get(1))
-serverApps.Start(ns.core.Seconds(1.0))
-serverApps.Stop(ns.core.Seconds(10.0))
+print "nar's node is {}".format(nar2.GetNode())
 
-echoClient = ns.applications.UdpEchoClientHelper(interfaces.GetAddress(1), 9)
-echoClient.SetAttribute("MaxPackets", ns.core.UintegerValue(5))
-echoClient.SetAttribute("Interval", ns.core.TimeValue(ns.core.Seconds (1.0)))
-echoClient.SetAttribute("PacketSize", ns.core.UintegerValue(1024))
-
-clientApps = echoClient.Install(nodes.Get(0))
-clientApps.Start(ns.core.Seconds(2.0))
-clientApps.Stop(ns.core.Seconds(10.0))
+nar.SetStartTime(ns.core.Seconds(2.0))
+nar.SetStartTime(ns.core.Seconds(8.0))
+nar2.SetStopTime(ns.core.Seconds(4.0))
+nar2.SetStopTime(ns.core.Seconds(9.0))
 
 ns.core.Simulator.Run()
 ns.core.Simulator.Destroy()
