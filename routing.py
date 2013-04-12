@@ -119,7 +119,6 @@ class Routing:
 
 			if self.debug: print("Delay {} to {}, old {}, new {}").format(self.this_node, node, old_delay, delay)
 			if delay != old_delay:
-				print 'change'
 				if delay != Routing.MAX_DELAY:
 					if self.debug:
 						print("Adding edge {}--{}-->{} to graph".format(self.this_node, delay, node))
@@ -258,7 +257,7 @@ class Routing:
 			new_data = [self.this_node, self.this_ip, data[2]]
 			new_data = 'DATA\n' + json.dumps(new_data)
 
-			send_to_neighbours(new_data, origin=incoming_node)
+			self.send_to_neighbours(new_data, origin=incoming_node)
 
 	def handle_data(self, data):
 
