@@ -75,7 +75,7 @@ class Routing:
 			return -1
 
 	def send_to_neighbours(self, data, origin):
-		for node in self.g[this_node]: #send to all connected nodes
+		for node in self.g[self.this_node]: #send to all connected nodes
 			if node == self.this_node or node == origin: continue
 			gevent.spawn(self.send_data, node, data)
 			gevent.sleep(0)
