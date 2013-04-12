@@ -34,7 +34,7 @@ class Routing:
 		with open(neighbour_file) as f:
 			temp_neighbours = f.readlines()
 			
-		self.disconnected_neighbours = {}
+		#self.disconnected_neighbours = {}
 		self.fwd_table = {}
 		self.ip_address_dict = {}
 
@@ -114,20 +114,25 @@ class Routing:
 			print("Pinged and measured a delay of {}".format(delay))
 
 		if update: ## graph needs to be updated even if the ping time is Routing.MAX_DELAY since that indicates a connection being lost.		
-			if delay != Routing.MAX_DELAY:
-				if self.debug:
-					print("Adding edge {}--{}-->{} to graph".format(self.this_node, delay, node))
-				self.g.add_node(node)
-				self.g.add_edge(self.this_node, node, weight=delay)
+			old_delay = self.g[self.this_node][node]['weight'] if node in self.g[self.this_node] \
+																			else Routing.MAX_DELAY
+
+			if self.debug: print("Delay {} to {}, old {}, new {}").format(self.this_node, node, old_delay, delay)
+			if delay != old_delay:
+				print 'change'
+				if delay != Routing.MAX_DELAY:
+					if self.debug:
+						print("Adding edge {}--{}-->{} to graph".format(self.this_node, delay, node))
+					self.g.add_node(node)
+					self.g.add_edge(self.this_node, node, weight=delay)
+
+					#if node in self.disconnected_neighbours: self.disconnected_neighbours.pop(node, None)
+				elif delay == Routing.MAX_DELAY:
+					if node in self.g[self.this_node]:
+						self.g.remove_edge(self.this_node, node)
+
 				self.graph_modified = True
-
-				if node in self.disconnected_neighbours: self.disconnected_neighbours.pop(node, None)
-			elif delay == Routing.MAX_DELAY:
-				if node in self.g[self.this_node]:
-					self.g.remove_edge(self.this_node, node)
-					self.graph_modified = True
-
-				self.disconnected_neighbours[self.this_node] = 1
+				#self.disconnected_neighbours[self.this_node] = 1
 
 		return delay
 
@@ -150,8 +155,8 @@ class Routing:
 			if not self.g[self.this_node].has_key(incoming_node):
 				self.ping_node(incoming_node)
 
-			if incoming_node in self.disconnected_neighbours:
-				self.disconnected_neighbours.pop(incoming_node, None)
+			#if incoming_node in self.disconnected_neighbours:
+			#	self.disconnected_neighbours.pop(incoming_node, None)
 
 
 			if len(update_data) > 2:
@@ -168,16 +173,21 @@ class Routing:
 			if not node in self.ip_address_dict.keys():
 				self.ip_address_dict[node] = ip_address
 
+			old_delay = self.g[previous_node][node]['weight'] if previous_node in self.g and \
+														node in self.g[previous_node] else Routing.MAX_DELAY
 
+			if delay != old_delay:
 
-			if delay != Routing.MAX_DELAY:
-				self.g.add_node(node)
-				self.g.add_edge(previous_node, node, weight=delay)
+				if delay != Routing.MAX_DELAY:
+						self.g.add_node(node)
+						self.g.add_edge(previous_node, node, weight=delay)
+						
+				else:
+					if node in self.g[previous_node]:
+						self.g.remove_edge(previous_node, node)
+
 				self.graph_modified = True
-			else:
-				if node in self.g[previous_node]:
-					self.g.remove_edge(previous_node, node)
-					self.graph_modified = True
+
 
 			previous_node = node
 
@@ -187,7 +197,8 @@ class Routing:
 			incoming_node = update_data[0]
 			incoming_node_ip = update_data[1]
 
-		data = [self.this_node, self.this_ip, [incoming_node, incoming_node_ip, self.g[self.this_node][incoming_node]['weight']]]
+		data = [self.this_node, self.this_ip, [incoming_node, incoming_node_ip,
+											self.g[self.this_node][incoming_node]['weight']]]
 		
 		for vector in update_data[2:]:
 			data.append(vector)
@@ -262,6 +273,7 @@ class Routing:
 	def generate_spanning_tree(self):
 		if self.debug: print 'Graph modified, regenerating mst'
 		self.mst = nx.minimum_spanning_tree(self.g)
+		self.graph_modified = False
 
 
 	#call func at every delay seconds
@@ -272,31 +284,24 @@ class Routing:
 
 
 	def propagate_neighbour_latencies(self):
-		neighbours = self.g[self.this_node]
-		if self.debug: print("Attempting to propagate my list of latencies: {}".format(neighbours))
+		connected_neighbours = self.g[self.this_node]
+		if self.debug: print("Attempting to propagate my list of latencies to: {}".format(connected_neighbours))
 
-		for nodeS in neighbours.keys():
-			weightS = neighbours[nodeS]['weight']
-			for nodeD in neighbours.keys():
-				weightD = neighbours[nodeD]['weight']
-
+		for nodeS in connected_neighbours.keys():
+			weightS = connected_neighbours[nodeS]['weight']
+			for nodeD in self.neighbour_list.keys():
 				if nodeS == nodeD: continue
 
+				weightD = connected_neighbours[nodeD]['weight'] if nodeD in connected_neighbours \
+																		else Routing.MAX_DELAY
 
 				data = [self.this_node, self.this_ip, [nodeD, self.ip_address_dict[nodeD], weightD]]
 				data = 'UPDATE\n' + json.dumps(data)
 
-				if self.debug: print("Going to update {} with {}".format(nodeS, data))
+				if self.debug: print("Going to update {} with {}, disconnected={}".\
+															format(nodeS, data, nodeD in connected_neighbours))
 				gevent.spawn(self.send_data, nodeS, data)
 
-			for nodeD in self.disconnected_neighbours:
-
-				data = [self.this_node, self.this_ip, [node, self.ip_address_dict[nodeD], Routing.MAX_DELAY]]
-				data = 'UPDATE\n' + json.dumps(data)
-
-				if self.debug: print("Going to update disconnected nodes {} with {}".format(nodeD, data))
-				
-				gevent.spawn(self.send_data, nodeS, data)
 
 	def populate_and_propogate(self):
 		self.populate_neighbour_latencies()
