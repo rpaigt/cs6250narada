@@ -36,10 +36,13 @@ class Narada(ns.network.Application):
 #Switching between these 2 and compare log.out,
 #with udp echo, it recognises the starttime, but not narada.
 #going to examine how udpechoclient was written vs Narada was written
-nar = Narada()
-nar2 = Narada()
-#nar = ns.applications.UdpEchoClient()
-#nar2 = ns.applications.UdpEchoClient()
+#nar = Narada()
+#nar2 = Narada()
+nar = ns.applications.UdpEchoClient()
+nar2 = ns.applications.UdpEchoClient()
+
+ns.core.LogComponentEnable("UdpEchoClientApplication", ns.core.LOG_LEVEL_INFO)
+ns.core.LogComponentEnable("UdpEchoServerApplication", ns.core.LOG_LEVEL_INFO)
 
 nodes = ns.network.NodeContainer()
 nodes.Create(2)
@@ -64,8 +67,8 @@ nodes.Get(0).AddApplication(nar2)
 print "nar's node is {}".format(nar2.GetNode())
 
 nar.SetStartTime(ns.core.Seconds(2.0))
-nar.SetStartTime(ns.core.Seconds(8.0))
-nar2.SetStopTime(ns.core.Seconds(4.0))
+nar2.SetStartTime(ns.core.Seconds(8.0))
+nar.SetStopTime(ns.core.Seconds(4.0))
 nar2.SetStopTime(ns.core.Seconds(9.0))
 
 ns.core.Simulator.Run()
