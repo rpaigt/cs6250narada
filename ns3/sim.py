@@ -25,10 +25,10 @@ import ns.applications
 
 class Narada(ns.network.Application):
     def StartApplication(self):
-	print("Hi!")
+		print "Hi!"
 
     def StopApplication(self):
-	print("Bye!")
+		print "Bye!"
 
     #def DoStart(self):
 	#print("In dostart")
@@ -36,10 +36,10 @@ class Narada(ns.network.Application):
 #Switching between these 2 and compare log.out,
 #with udp echo, it recognises the starttime, but not narada.
 #going to examine how udpechoclient was written vs Narada was written
-#nar = Narada()
-#nar2 = Narada()
-nar = ns.applications.UdpEchoClient()
-nar2 = ns.applications.UdpEchoClient()
+nar = Narada()
+nar2 = Narada()
+#nar = ns.applications.UdpEchoClient()
+#nar2 = ns.applications.UdpEchoClient()
 
 ns.core.LogComponentEnable("UdpEchoClientApplication", ns.core.LOG_LEVEL_INFO)
 ns.core.LogComponentEnable("UdpEchoServerApplication", ns.core.LOG_LEVEL_INFO)
