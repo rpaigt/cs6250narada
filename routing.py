@@ -251,7 +251,7 @@ class Routing:
 
 	def propagate_data(self, data):
 
-		if len(update_data) >= 2:
+		if len(data) >= 2:
 			incoming_node = data[0]
 			incoming_node_ip = data[1]
 
@@ -262,9 +262,9 @@ class Routing:
 
 	def handle_data(self, data):
 
-		if len(update_data) >= 2:
-			incoming_node = update_data[0]
-			incoming_node_ip = update_data[1]
+		if len(data) >= 2:
+			incoming_node = data[0]
+			incoming_node_ip = data[1]
 
 			print 'Received Data From: {}:{}'.format(incoming_node, incoming_node_ip)
 			print data
