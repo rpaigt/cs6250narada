@@ -1,7 +1,7 @@
 cs6250narada
 ============
 
-implementation of narada platform
+Implementation of Narada platform
 
 
 Need two files in the same folder as script to run the program.
@@ -45,3 +45,5 @@ sudo pip install gevent
 or alternatively for python libraries try:
 sudo easy_install gevent
 sudo easy_install networkx
+
+
