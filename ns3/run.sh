@@ -26,7 +26,7 @@ done
 #run simulation
 cd $NSPATH
 export NS_LOG=
-if [ $1 == "-v" ]; then
+if [ "-v" = $1 ]; then
     export NS_LOG="*=level_all|prefix_func|prefix_time"
 fi
     
