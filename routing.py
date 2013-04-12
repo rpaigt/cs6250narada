@@ -74,8 +74,8 @@ class Routing:
 			if self.debug: "Sending data to {}, {} failed".format(node, data)
 			return -1
 
-	def send_to_neighbours(self, data, origin):#propagates to all neighbours except origin
-		for node in self.neighbour_list:
+	def send_to_neighbours(self, data, origin):
+		for node in self.g[this_node]: #send to all connected nodes
 			if node == self.this_node or node == origin: continue
 			gevent.spawn(self.send_data, node, data)
 			gevent.sleep(0)
@@ -212,7 +212,7 @@ class Routing:
 		data = socket.recv(1024)
 		data = data.split('\n')
 
-		print("New incoming {} connection from {}".format(data[0],address))
+		print("New incoming {} connection from {}".format(data[0], address))
 		if data[0] == 'ECHO':
 			socket.send(data[0])
 			socket.close()
@@ -226,7 +226,11 @@ class Routing:
 			socket.close()
 
 		elif data[0] == 'DATA':
-			print data[1:]
+			data = json.loads(data[1])
+
+			self.handle_data(data)
+			self.propagate_data(data)
+
 			socket.close();
 
 		elif data[0] == 'STATUS':
@@ -242,6 +246,29 @@ class Routing:
 		else:
 			print 'UNRECOG: '
 			print data
+
+
+
+	def propagate_data(self, data):
+
+		if len(update_data) >= 2:
+			incoming_node = data[0]
+			incoming_node_ip = data[1]
+
+			new_data = [self.this_node, self.this_ip, data[2]]
+			new_data = 'DATA\n' + json.dumps(new_data)
+
+			send_to_neighbours(new_data, origin=incoming_node)
+
+	def handle_data(self, data):
+
+		if len(update_data) >= 2:
+			incoming_node = update_data[0]
+			incoming_node_ip = update_data[1]
+
+			print 'Received Data From: {}:{}'.format(incoming_node, incoming_node_ip)
+			print data
+				
 
 
 	#this function pings each of its neighbours
