@@ -233,12 +233,13 @@ class Routing:
 			socket.close();
 
 		elif data[0] == 'STATUS':
-			status += 'Node: ' + self.this_node + '\n'
+			status = 'Node: ' + self.this_node + '\n'
 			status += 'Connected nodes: ' + str(self.g.nodes()) + '\n'
 
 			for a,b in self.g.edges():
 				status += str(a) + ' ' + str(b) + ' ' + str(self.g[a][b]['weight']) + '\n'
 
+			if self.debug: print status
 			socket.send(status)
 			socket.close()
 
@@ -325,7 +326,7 @@ class Routing:
 				data = 'UPDATE\n' + json.dumps(data)
 
 				if self.debug: print("Going to update {} with {}, disconnected={}".\
-															format(nodeS, data, nodeD in connected_neighbours))
+															format(nodeS, data, nodeD not in connected_neighbours))
 				gevent.spawn(self.send_data, nodeS, data)
 
 
