@@ -25,21 +25,33 @@ import ns.applications
 
 class Narada(ns.network.Application):
     def StartApplication(self):
-	print("Hi!")
+	node = super(Narada, self).GetNode()
+	time = ns.core.Simulator.Now()
+	print("{} says Hi! at {}".format(node, time))
+
+	#create a test socket
+	tid = ns.core.TypeId.LookupByName("ns3::UdpSocketFactory")
+	soc = ns.network.Socket.CreateSocket(node, tid)
 
     def StopApplication(self):
-	print("Bye!")
+	time = ns.core.Simulator.Now()
+	node = super(Narada, self).GetNode()
+	print("{} says Bye! at {}".format(node, time))
 
     #def DoStart(self):
 	#print("In dostart")
 	#super(Narada, self).SetStartTime(t)
+
 #Switching between these 2 and compare log.out,
 #with udp echo, it recognises the starttime, but not narada.
 #going to examine how udpechoclient was written vs Narada was written
-#nar = Narada()
-#nar2 = Narada()
-nar = ns.applications.UdpEchoClient()
-nar2 = ns.applications.UdpEchoClient()
+app = "narada"
+if app == "narada" :
+    nar = Narada()
+    nar2 = Narada()
+elif app == "echo"  :
+    nar = ns.applications.UdpEchoClient()
+    nar2 = ns.applications.UdpEchoServer()
 
 ns.core.LogComponentEnable("UdpEchoClientApplication", ns.core.LOG_LEVEL_INFO)
 ns.core.LogComponentEnable("UdpEchoServerApplication", ns.core.LOG_LEVEL_INFO)
@@ -64,12 +76,16 @@ interfaces = address.Assign (devices);
 nodes.Get(1).AddApplication(nar)
 nodes.Get(0).AddApplication(nar2)
 
-print "nar's node is {}".format(nar2.GetNode())
-
-nar.SetStartTime(ns.core.Seconds(2.0))
-nar2.SetStartTime(ns.core.Seconds(8.0))
-nar.SetStopTime(ns.core.Seconds(4.0))
-nar2.SetStopTime(ns.core.Seconds(9.0))
+if app == "narada" :
+    ns.core.Simulator.Schedule(ns.core.Seconds(2.0), Narada.StartApplication, nar)
+    ns.core.Simulator.Schedule(ns.core.Seconds(8.0), Narada.StartApplication,nar2)
+    ns.core.Simulator.Schedule(ns.core.Seconds(4.0), Narada.StopApplication, nar)
+    ns.core.Simulator.Schedule(ns.core.Seconds(9.0), Narada.StopApplication,nar2)
+elif app == "echo" :
+    nar.SetStartTime(ns.core.Seconds(2.0))
+    nar2.SetStartTime(ns.core.Seconds(8.0))
+    nar.SetStopTime(ns.core.Seconds(4.0))
+    nar2.SetStopTime(ns.core.Seconds(9.0))
 
 ns.core.Simulator.Run()
 ns.core.Simulator.Destroy()
