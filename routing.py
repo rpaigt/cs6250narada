@@ -316,7 +316,7 @@ class Routing:
 
 		for nodeS in connected_neighbours.keys():
 			weightS = connected_neighbours[nodeS]['weight']
-			for nodeD in self.neighbour_list.keys():
+			for nodeD in self.neighbour_list:
 				if nodeS == nodeD: continue
 
 				weightD = connected_neighbours[nodeD]['weight'] if nodeD in connected_neighbours \
