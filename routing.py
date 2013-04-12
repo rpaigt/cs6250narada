@@ -258,7 +258,10 @@ class Routing:
 			new_data = [self.this_node, self.this_ip, data[2]]
 			new_data = 'DATA\n' + json.dumps(new_data)
 
-			self.send_to_neighbours(new_data, origin=incoming_node)
+			for node in self.mst[this_node]:
+				if node == incoming_node_ip: continue
+				gevent.spawn(self.send_data, node, new_data)
+				gevent.sleep(0)
 
 	def handle_data(self, data):
 
