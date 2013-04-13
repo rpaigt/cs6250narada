@@ -23,15 +23,57 @@ import ns.point_to_point
 import ns.applications
 #import ns.ipv4_global_routing_helper #doesn't exist in python binding yet
 
-class Narada(ns.network.Application):
-    def StartApplication(self):
-	node = super(Narada, self).GetNode()
-	time = ns.core.Simulator.Now()
-	print("{} says Hi! at {}".format(node, time))
+#brought over from Narada
+import networkx as nx
 
-	#create a test socket
+#DEF_IP='0.0.0.0' it doesn't make sense to talk about "server's ip" in ns3 since ns3 simulates not just the "server" node
+DEF_PORT=30000
+DEF_IPF='ipaddresses.txt'
+DEF_NF='neighbours.txt'
+DEBUG = True
+class Narada(ns.network.Application):
+# it seems like ns doesn't like Narada to have a constructor.
+    def init(self, port=DEF_PORT, ip_file=DEF_IPF, neighbour_file=DEF_NF, debug=False):
+	self.node = super(Narada, self).GetNode()
+	self.ip = self.initIP()
+	self.port = port
+	self.g = nx.Graph()
+	self.soc = self.initSocket(self.ip)
+
+	#TODO: continue initing files and whatnot
+
+    def initIP(self):
+	global DEBUG
+	tid = ns.core.TypeId.LookupByName("ns3::Ipv4")
+	#GetAddress(1,0) is because 0,0 is 127.0.0.1
+	ip = self.node.GetObject(tid).GetAddress(1,0).GetLocal() 
+	if DEBUG==True: print "node's ipv4 is {}".format(ip)
+	return ip
+
+    #returns a socket pointing to remote_ip:remote_port
+    def initSocket(self, remote_ip, remote_port=DEF_PORT):
 	tid = ns.core.TypeId.LookupByName("ns3::UdpSocketFactory")
-	soc = ns.network.Socket.CreateSocket(node, tid)
+	soc = ns.network.Socket.CreateSocket(self.node, tid)
+	soc.Bind()
+	soc.Connect(ns.network.InetSocketAddress(remote_ip, remote_port))
+
+	#TODO: figure out how to set Callbacks, perhaps "manually"?
+	#python bindings doesn't support MakeCallBack? :-(
+	#soc.SetRecvCallback(ns.core.MakeCallback())
+
+	return "CHANGE ME"
+
+
+    def StartApplication(self):
+	self.init()
+	time = ns.core.Simulator.Now()
+	print("{} says Hi! at {}".format(self.node, time))
+
+	#TODO: create a test socket and some echo ping connections
+	#soc.Connect()
+
+	#try to practice socket coding in ns3 first before
+	#attempting to port narada over
 
     def StopApplication(self):
 	time = ns.core.Simulator.Now()
@@ -45,13 +87,6 @@ class Narada(ns.network.Application):
 #Switching between these 2 and compare log.out,
 #with udp echo, it recognises the starttime, but not narada.
 #going to examine how udpechoclient was written vs Narada was written
-app = "narada"
-if app == "narada" :
-    nar = Narada()
-    nar2 = Narada()
-elif app == "echo"  :
-    nar = ns.applications.UdpEchoClient()
-    nar2 = ns.applications.UdpEchoServer()
 
 ns.core.LogComponentEnable("UdpEchoClientApplication", ns.core.LOG_LEVEL_INFO)
 ns.core.LogComponentEnable("UdpEchoServerApplication", ns.core.LOG_LEVEL_INFO)
@@ -73,8 +108,16 @@ address.SetBase(ns.network.Ipv4Address("10.1.1.0"), ns.network.Ipv4Mask("255.255
 
 interfaces = address.Assign (devices);
 
-nodes.Get(1).AddApplication(nar)
-nodes.Get(0).AddApplication(nar2)
+app = "narada"
+if app == "narada" :
+    nar = Narada()
+    nar2 = Narada()
+elif app == "echo"  :
+    nar = ns.applications.UdpEchoClient()
+    nar2 = ns.applications.UdpEchoServer()
+
+nodes.Get(0).AddApplication(nar)
+nodes.Get(1).AddApplication(nar2)
 
 if app == "narada" :
     ns.core.Simulator.Schedule(ns.core.Seconds(2.0), Narada.StartApplication, nar)
