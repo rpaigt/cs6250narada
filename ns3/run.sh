@@ -9,7 +9,7 @@ NSPATH="../../ns-allinone-3.16/ns-3.16/"
 SCRATCHPATH=$NSPATH"/scratch/"
 
 #files to be copied over, modify this accordingly
-FILES="sim.py ../routing2.py"
+FILES="sim.py ../routing.py"
 
 #this checks if you have already extracted and compiled ns-3.16 into ../..
 if [ ! -d $NSPATH ]; then
