@@ -59,7 +59,9 @@ class Narada(ns.network.Application):
 
 	#TODO: figure out how to set Callbacks, perhaps "manually"?
 	#python bindings doesn't support MakeCallBack? :-(
-	#soc.SetRecvCallback(ns.core.MakeCallback())
+	#print "ns.core is {}".format(dir(ns.core))
+	print "ns.core.CallbackBase is {}".format(dir(ns.core.CallbackBase()))
+	soc.SetRecvCallback(ns.core.CallbackBase())
 
 	return "CHANGE ME"
 
