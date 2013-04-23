@@ -92,9 +92,14 @@ class Routing:
 			try:
 				client = socket.socket()
 				client.settimeout(5)
+                                print "hi, trying", ip_address, self.port
 				client.connect((ip_address, self.port))
+                                print "bye"
 
 				start = datetime.datetime.now()
+				
+		                if self.debug: 
+			            print("Attempted to ping node {} at {}:{}".format(node, ip_address,self.port))
 				client.send('ECHO\n')
 				client.recv(1024)
 				end = datetime.datetime.now()
@@ -104,13 +109,12 @@ class Routing:
 				delay = (((end - start) / 2).microseconds) / 1000.0
 				break
 
-			except:
+			except Exception as e:
+			        print("Exception encountered", e)
 				tries += 1
 				if tries == MAX_TRIES:
 					delay = Routing.MAX_DELAY
 
-		if self.debug: 
-			print("Attempted to ping node {} at {}:{}".format(node, ip_address,self.port))
 			print("Pinged and measured a delay of {}".format(delay))
 
 		if update: ## graph needs to be updated even if the ping time is Routing.MAX_DELAY since that indicates a connection being lost.		
