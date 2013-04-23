@@ -367,17 +367,17 @@ class Routing:
         #Q is list of nodes for which curnode has not recieved an update yet for time T=timeout
         Q=[]
         for e in self.L:
-            if (e[1] - curtime).seconds >= T:
+            if (curtime-e[1]).seconds >= T:
                 Q.append(e)
         Q = sorted(Q, key=lambda e: e[1]).reverse()
         while len(Q) and (Q[0] >= T):
             front = Q.pop(0)
-            ProbeAndAdd(front)
+            ProbeAndAdd(front[0])
         if len(Q):
             prob = len(Q) / len(self.L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
             if random.random() >= (1-prob):
                 front = Q.pop(0)
-                ProbeAndAdd(front)
+                ProbeAndAdd(front[0])
         self.schedule(20, self.mesh_repair)
 
     def generate_fwd_table(self):
