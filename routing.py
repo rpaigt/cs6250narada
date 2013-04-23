@@ -146,7 +146,7 @@ class Routing:
             incoming_node_ip = update_data[1]
 
             #TODO
-	    if not incoming_node in self.L
+            if not incoming_node in self.L
             #if it's an entirely new node
             if not incoming_node in self.ip_address_dict.keys():
                 self.ip_address_dict[incoming_node] = incoming_node_ip
@@ -350,17 +350,17 @@ class Routing:
     # if he's suddenly alive again, we add a link immediately
     # and our mesh is repaired.
     def ProbeAndAdd(self, newnode):
-	if self.debug: print "mesh repair: probing potential new node {}".format(newnode)
+        if self.debug: print "mesh repair: probing potential new node {}".format(newnode)
         delay = ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
         if(delay != MAX_DELAY):
             #REPLACE IF NECESSARY: add link from curnode to newnode
             g.add_edge(self.this_node, newnode, weight=delay)
             graph_modified = True
             self.neighbour_list.append(newnode)
-	    if self.debug: print "mesh repair: managed to add a repaired link to node {}".format(newnode)
+            if self.debug: print "mesh repair: managed to add a repaired link to node {}".format(newnode)
 
     def mesh_repair(self):#
-	if self.debug: print "mesh repair: checking if repair is needed"
+        if self.debug: print "mesh repair: checking if repair is needed"
         T=30
         curtime = datetime.datetime.now()
         #self.L contains tuples of (node,last_update_time) for curnode
