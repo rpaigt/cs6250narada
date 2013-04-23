@@ -92,14 +92,14 @@ class Routing:
             try:
                 client = socket.socket()
                 client.settimeout(5)
-                                print "hi, trying", ip_address, self.port
+                print "hi, trying", (ip_address, self.port)
                 client.connect((ip_address, self.port))
-                                print "bye"
+                print "bye"
 
                 start = datetime.datetime.now()
                 
-                        if self.debug: 
-                        print("Attempted to ping node {} at {}:{}".format(node, ip_address,self.port))
+                if self.debug: 
+                    print("Attempted to ping node {} at {}:{}".format(node, ip_address,self.port))
                 client.send('ECHO\n')
                 client.recv(1024)
                 end = datetime.datetime.now()
@@ -110,7 +110,7 @@ class Routing:
                 break
 
             except Exception as e:
-                    print("Exception encountered", e)
+                print("Exception encountered", e)
                 tries += 1
                 if tries == MAX_TRIES:
                     delay = Routing.MAX_DELAY
