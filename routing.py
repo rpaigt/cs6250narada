@@ -370,7 +370,7 @@ class Routing:
             if (curtime-e[1]).seconds >= T:
                 Q.append(e)
         Q = sorted(Q, key=lambda e: e[1]).reverse()
-        while len(Q) and (Q[0] >= T):
+        while (len(Q) and ((curtime-Q[0][1]) >= T)):
             front = Q.pop(0)
             ProbeAndAdd(front[0])
         if len(Q):
