@@ -346,12 +346,18 @@ class Routing:
             self.generate_fwd_table()
 
 
+        # probe the dead guy to see if he's suddenly alive again
+        # if he's suddenly alive again, we add a link immediately
+        # and our mesh is repaired.
 	def ProbeAndAdd(curnode, newnode):
 		delay = ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
 		if(delay != MAX_DELAY):
 			#REPLACE IF NECESSARY: add link from curnode to newnode
 			g.add_edge(curnode, newnode, weight=delay)
 			graph_modified = True
+                        #TODO: how do we add a node as a new neighbour????
+                        self.neighbour_list.append()
+
 	
 	def mesh_repair(curnode):#
 		MAX_DELAY=9999
