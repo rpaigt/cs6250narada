@@ -146,6 +146,10 @@ class Routing:
             incoming_node_ip = update_data[1]
 
             #TODO
+            #Search self.L for incoming_node, and update its time to current time,
+            # e.g. tuple = search(self.L, incoming_node), tuple[1] = currTime.seconds
+            # and if incoming_node is not in self.L, it is created and inserted into self.L
+
             if not incoming_node in self.L
             #if it's an entirely new node
             if not incoming_node in self.ip_address_dict.keys():
