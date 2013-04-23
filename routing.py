@@ -263,7 +263,7 @@ class Routing:
             new_data = 'DATA\n' + json.dumps(new_data)
 
             for node in self.mst[self.this_node]:
-                if self.ip_node_mapping[node] == incoming_node_ip: continue
+                if self.ip_address_dict[node] == incoming_node_ip: continue
                 gevent.spawn(self.send_data, node, new_data)
                 gevent.sleep(0)
 
