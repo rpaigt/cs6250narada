@@ -349,37 +349,33 @@ class Routing:
         # probe the dead guy to see if he's suddenly alive again
         # if he's suddenly alive again, we add a link immediately
         # and our mesh is repaired.
-    def ProbeAndAdd(curnode, newnode):
+    def ProbeAndAdd(self, newnode):
         delay = ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
         if(delay != MAX_DELAY):
             #REPLACE IF NECESSARY: add link from curnode to newnode
-            g.add_edge(curnode, newnode, weight=delay)
+            g.add_edge(self.this_node, newnode, weight=delay)
             graph_modified = True
-                        #TODO: how do we add a node as a new neighbour????
-                        self.neighbour_list.append()
+            self.neighbour_list.append(newnode)
 
-    
-    def mesh_repair(curnode):#
-        MAX_DELAY=9999
-        T=100
-        while True: ## We can just call mesh repair at regular intervals. Does this need to be while(true)?
-            curtime = get_curtime()#IMPLEMENT
-            #L contains tuples of (node,last_update_time) for curnode
-            #Q is list of nodes for which curnode has not recieved an update yet for time T=timeout
-            Q=[]
-            for e in L:
-                if (e[1] - curtime) >= T:
-                    Q.append(e)
-            Q = sorted(Q, key=lambda e: e[1])
-            while len(Q) and (Q[0] >= T):
+    def mesh_repair(self):#
+        T=30
+        curtime = datetime.datetime.now()
+        #self.L contains tuples of (node,last_update_time) for curnode
+        #Q is list of nodes for which curnode has not recieved an update yet for time T=timeout
+        Q=[]
+        for e in self.L:
+            if (e[1] - curtime).seconds >= T:
+                Q.append(e)
+        Q = sorted(Q, key=lambda e: e[1]).reverse()
+        while len(Q) and (Q[0] >= T):
+            front = Q.pop(0)
+            ProbeAndAdd(front)
+        if len(Q):
+            prob = len(Q) / len(L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
+            if random.random() >= (1-prob):
                 front = Q.pop(0)
-                ProbeAndAdd(curnode, front)
-            if len(Q):
-                prob = len(Q) / len(L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
-                if random.random() >= (1-prob):
-                    front = Q.pop(0)
-                    ProbeAndAdd(curnode,front)
-            sleep(time)#REPLACE IF NECESSARY:with whatever sleep function gevent uses
+                ProbeAndAdd(front)
+        self.schedule(20, self.mesh_repair)
 
     def generate_fwd_table(self):
         path = None
