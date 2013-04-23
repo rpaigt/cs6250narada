@@ -371,7 +371,7 @@ class Routing:
         server.start()
 
         #send update messages every 10 seconds
-        self.schedule(60, self.populate_and_propogate)
+        self.schedule(20, self.populate_and_propogate)
         self.schedule(10, self.ping_dead_neighbours)
 
         server.serve_forever()
