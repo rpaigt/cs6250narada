@@ -45,8 +45,6 @@ def ProbeAndAdd(curnode, newnode):
 		graph_modified = True
 	
 def mesh_repair(curnode):#
-	global graph_modified
-	T = 1000#timeout, now need to repair these nodes since they did nto update for T
 	MAX_DELAY=9999
 	T=100
 	while True: ## We can just call mesh repair at regular intervals. Does this need to be while(true)?
