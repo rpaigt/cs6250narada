@@ -25,7 +25,7 @@ neighbour_list = [n.strip() for n in temp_neighbours]
 def send(node, data):
 	s = socket.socket()
 	s.connect((ip_address_dict[node], port))
-	print("Attempted to send data to node {} at {}:{}".format(node, ip_address_dict[node],port))                                                               
+	print("Attempted to send data to node {} at {}".format(node, (ip_address_dict[node],port)))                                                               
 	s.sendall(data)
 	s.close()
 
