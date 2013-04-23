@@ -37,6 +37,7 @@ def get_mutual_cost(trynode):
 			count2 = count2+1
 
 	return max(count1, count2)
+
 def ProbeAndAdd(curnode, newnode):
 	delay = ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
 	if(delay != MAX_DELAY):

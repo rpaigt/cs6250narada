@@ -346,6 +346,34 @@ class Routing:
             self.generate_fwd_table()
 
 
+	def ProbeAndAdd(curnode, newnode):
+		delay = ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
+		if(delay != MAX_DELAY):
+			#REPLACE IF NECESSARY: add link from curnode to newnode
+			g.add_edge(curnode, newnode, weight=delay)
+			graph_modified = True
+	
+	def mesh_repair(curnode):#
+		MAX_DELAY=9999
+		T=100
+		while True: ## We can just call mesh repair at regular intervals. Does this need to be while(true)?
+			curtime = get_curtime()#IMPLEMENT
+			#L contains tuples of (node,last_update_time) for curnode
+			#Q is list of nodes for which curnode has not recieved an update yet for time T=timeout
+			Q=[]
+			for e in L:
+				if (e[1] - curtime) >= T:
+					Q.append(e)
+			Q = sorted(Q, key=lambda e: e[1])
+			while len(Q) and (Q[0] >= T):
+				front = Q.pop(0)
+				ProbeAndAdd(curnode, front)
+			if len(Q):
+				prob = len(Q) / len(L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
+				if random.random() >= (1-prob):
+					front = Q.pop(0)
+					ProbeAndAdd(curnode,front)
+			sleep(time)#REPLACE IF NECESSARY:with whatever sleep function gevent uses
 
     def generate_fwd_table(self):
         path = None
