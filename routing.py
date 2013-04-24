@@ -384,7 +384,7 @@ class Routing:
             length=len(Q)
         while (length and ((curtime-Q[0][1]).seconds >= T)):
             front = Q.pop(0)
-            ProbeAndAdd(front[0])
+            self.ProbeAndAdd(front[0])
         if len(Q):
             prob = len(Q) / len(self.L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
             if random.random() >= (1-prob):
