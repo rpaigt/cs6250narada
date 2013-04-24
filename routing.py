@@ -359,6 +359,7 @@ class Routing:
     def ProbeAndAdd(self, newnode):
         if self.debug: print "mesh repair: probing potential new node {}".format(newnode)
         delay = self.ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
+        if self.debug: print "mesh repair: probed {} and got delay of {}".format(newnode, delay)
         if(delay != Routing.MAX_DELAY):
             #REPLACE IF NECESSARY: add link from curnode to newnode
             self.g.add_edge(self.this_node, newnode, weight=delay)
