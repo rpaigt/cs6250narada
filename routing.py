@@ -390,7 +390,6 @@ class Routing:
             if random.random() >= (1-prob):
                 front = Q.pop(0)
                 ProbeAndAdd(front[0])
-        self.schedule(20, self.mesh_repair)
 
     def generate_fwd_table(self):
         path = None
