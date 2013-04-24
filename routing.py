@@ -389,7 +389,7 @@ class Routing:
             prob = len(Q) / len(self.L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
             if random.random() >= (1-prob):
                 front = Q.pop(0)
-                ProbeAndAdd(front[0])
+                self.ProbeAndAdd(front[0])
 
     def generate_fwd_table(self):
         path = None
