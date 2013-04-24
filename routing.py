@@ -384,7 +384,7 @@ class Routing:
             length=len(Q)
         print "mesh repair: Q is {}".format(Q)
         try:
-            while (length and ((curtime-Q[0][1]).seconds >= T)):
+            while (not length == 0 and ((curtime-Q[0][1]).seconds >= T)):
                 front = Q.pop(0)
                 self.ProbeAndAdd(front[0])
             if len(Q):
