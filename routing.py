@@ -148,15 +148,15 @@ class Routing:
 
             temp=[i[0] for i in self.L] #temp is the names that I know of so far
 
-	    names_in_update = [i[0] for i in update_data[2:]] #these are the names I see 
-	    names_in_update.append(incoming_node) #remember to also include the neighbour himself
+            names_in_update = [i[0] for i in update_data[2:]] #these are the names I see 
+            names_in_update.append(incoming_node) #remember to also include the neighbour himself
 
-	    for i in names_in_update:
+            for i in names_in_update:
                 if(i in temp):
                     self.L[temp.index(i)][1]=datetime.datetime.now()
                 else:
                     self.L.append([i,datetime.datetime.now()])
-	    if self.debug: print "update of data: {} from {}, L is {}".format(update_data, incoming_node, self.L)
+            if self.debug: print "update of data: {} from {}, L is {}".format(update_data, incoming_node, self.L)
             #TODO
             #Search self.L for incoming_node, and update its time to current time,
             # e.g. tuple = search(self.L, incoming_node), tuple[1] = currTime.seconds
@@ -375,7 +375,6 @@ class Routing:
             print "mesh repair: managed to add a repaired link to node {}".format(newnode)
 
     def mesh_repair(self):#
-        print "mesh repair: checking if repair is needed"
         T=10
         curtime = datetime.datetime.now()
         #self.L contains tuples of (node,last_update_time) for curnode
@@ -384,6 +383,7 @@ class Routing:
         for e in self.L:
             if (curtime-e[1]).seconds >= T:
                 Q.append(e)
+        if (not len(Q) == 0): print "mesh repair: partitioned mesh detected, attempting repair.."
         Q.sort(key=lambda e: e[1])
         Q.reverse()
         #print Q
