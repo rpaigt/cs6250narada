@@ -22,6 +22,7 @@ class Routing:
         self.server_ip = server_ip
         self.port = port
 
+        self.L = []
         self.g = nx.Graph()
         self.mst = nx.Graph()
 
