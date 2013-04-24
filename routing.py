@@ -368,7 +368,7 @@ class Routing:
 
     def mesh_repair(self):#
         if self.debug: print "mesh repair: checking if repair is needed"
-        T=30
+        T=10
         curtime = datetime.datetime.now()
         #self.L contains tuples of (node,last_update_time) for curnode
         #Q is list of nodes for which curnode has not recieved an update yet for time T=timeout
@@ -415,8 +415,8 @@ class Routing:
         server.start()
 
         #send update messages every 10 seconds
-        self.schedule(20, self.populate_and_propogate)
-        self.schedule(10, self.ping_dead_neighbours)
+        self.schedule(5, self.populate_and_propogate)
+        self.schedule(20, self.ping_dead_neighbours)
         self.schedule(10, self.mesh_repair)
 
         server.serve_forever()
