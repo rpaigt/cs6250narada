@@ -114,7 +114,7 @@ class Routing:
                 if tries == MAX_TRIES:
                     delay = Routing.MAX_DELAY
 
-            print("Pinged and measured a delay of {}".format(delay))
+            if self.debug: print("Pinged and measured a delay of {}".format(delay))
 
         if update: ## graph needs to be updated even if the ping time is Routing.MAX_DELAY since that indicates a connection being lost.        
             old_delay = self.g[self.this_node][node]['weight'] if node in self.g[self.this_node] \
@@ -364,18 +364,18 @@ class Routing:
     # if he's suddenly alive again, we add a link immediately
     # and our mesh is repaired.
     def ProbeAndAdd(self, newnode):
-        if self.debug: print "mesh repair: probing potential new node {}".format(newnode)
+        print "mesh repair: probing potential new node {}".format(newnode)
         delay = self.ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
-        if self.debug: print "mesh repair: probed {} and got delay of {}".format(newnode, delay)
+        print "mesh repair: probed {} and got delay of {}".format(newnode, delay)
         if(delay != Routing.MAX_DELAY):
             #REPLACE IF NECESSARY: add link from curnode to newnode
             self.g.add_edge(self.this_node, newnode, weight=delay)
             self.graph_modified = True
             self.neighbour_list.append(newnode)
-            if self.debug: print "mesh repair: managed to add a repaired link to node {}".format(newnode)
+            print "mesh repair: managed to add a repaired link to node {}".format(newnode)
 
     def mesh_repair(self):#
-        if self.debug: print "mesh repair: checking if repair is needed"
+        print "mesh repair: checking if repair is needed"
         T=10
         curtime = datetime.datetime.now()
         #self.L contains tuples of (node,last_update_time) for curnode
@@ -390,7 +390,7 @@ class Routing:
 #length=0
 #if(Q != []):
 #length=len(Q)
-        print "mesh repair: Q is {}".format(Q)
+        if debug: print "mesh repair: Q is {}".format(Q)
         try:
             while (not len(Q) == 0 and ((curtime-Q[0][1]).seconds >= T)):
                 front = Q.pop(0)
