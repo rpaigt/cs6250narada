@@ -379,12 +379,12 @@ class Routing:
         Q.sort(key=lambda e: e[1])
         Q.reverse()
         #print Q
-        length=0
-        if(Q!=[]):
-            length=len(Q)
+#length=0
+#if(Q != []):
+#length=len(Q)
         print "mesh repair: Q is {}".format(Q)
         try:
-            while (not length == 0 and ((curtime-Q[0][1]).seconds >= T)):
+            while (not len(Q) == 0 and ((curtime-Q[0][1]).seconds >= T)):
                 front = Q.pop(0)
                 self.ProbeAndAdd(front[0])
             if len(Q):
