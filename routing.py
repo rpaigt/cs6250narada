@@ -56,7 +56,7 @@ class Routing:
 
 
         self.neighbour_list = [n.strip() for n in temp_neighbours]
-        if self.debug: print ("Got neighbours as {}".format(self.neighbour_list))
+        print ("Got neighbours as {}".format(self.neighbour_list))
 
         
 
