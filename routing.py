@@ -376,7 +376,8 @@ class Routing:
         for e in self.L:
             if (curtime-e[1]).seconds >= T:
                 Q.append(e)
-        Q = sorted(Q, key=lambda e: e[1]).reverse()
+        Q = sorted(Q, key=lambda e: e[1],reverse=True)
+        print Q
         length=0
         if(Q!=[]):
             length=len(Q)
