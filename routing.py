@@ -382,15 +382,18 @@ class Routing:
         length=0
         if(Q!=[]):
             length=len(Q)
-	print "mesh repair: Q is {}".format(Q)
-        while (length and ((curtime-Q[0][1]).seconds >= T)):
-            front = Q.pop(0)
-            self.ProbeAndAdd(front[0])
-        if len(Q):
-            prob = len(Q) / len(self.L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
-            if random.random() >= (1-prob):
+        print "mesh repair: Q is {}".format(Q)
+        try:
+            while (length and ((curtime-Q[0][1]).seconds >= T)):
                 front = Q.pop(0)
                 self.ProbeAndAdd(front[0])
+            if len(Q):
+                prob = len(Q) / len(self.L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
+                if random.random() >= (1-prob):
+                    front = Q.pop(0)
+                    self.ProbeAndAdd(front[0])
+        except:
+            print "index exception occured, but Q is {}".format(Q)
 
     def generate_fwd_table(self):
         path = None
