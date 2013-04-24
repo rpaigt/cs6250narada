@@ -390,7 +390,7 @@ class Routing:
 #length=0
 #if(Q != []):
 #length=len(Q)
-        if debug: print "mesh repair: Q is {}".format(Q)
+        if self.debug: print "mesh repair: Q is {}".format(Q)
         try:
             while (not len(Q) == 0 and ((curtime-Q[0][1]).seconds >= T)):
                 front = Q.pop(0)
