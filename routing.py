@@ -382,7 +382,7 @@ class Routing:
         length=0
         if(Q!=[]):
             length=len(Q)
-        while (length and ((curtime-Q[0][1]) >= T)):
+        while (length and ((curtime-Q[0][1]).seconds >= T)):
             front = Q.pop(0)
             ProbeAndAdd(front[0])
         if len(Q):
