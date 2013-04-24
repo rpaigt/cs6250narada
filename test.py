@@ -25,16 +25,19 @@ neighbour_list = [n.strip() for n in temp_neighbours]
 def send(node, data):
     s = socket.socket()
     s.connect((ip_address_dict[node], port))
-    print("Attempted to send data to node {} at {}".format(node, (ip_address_dict[node],port)))
     s.sendall(data)
+    print("Sent data to node {} at {}".format(node, (ip_address_dict[node],port)))
     s.close()
 
 def status(node):
     data = 'STATUS\n'
     send(node, data)
 
-def data(node):
-    data = 'DATA\n' + json.dumps([node, ip_address_dict[node], 'Hello World!!'])
-    send(node, data)
+#sends a test packet that says "this is DATA from SENDER to RECEIVER"
+def data(sender, receiver):
+    #construct packet, attach the sender info as well as a test message
+    print "Setting the sender's name to: {}".format(sender)
+    data = 'DATA\n' + json.dumps([sender, ip_address_dict[sender], 'Hello World!!'])
+    send(receiver, data)
 
     
