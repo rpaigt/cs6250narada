@@ -358,11 +358,11 @@ class Routing:
     # and our mesh is repaired.
     def ProbeAndAdd(self, newnode):
         if self.debug: print "mesh repair: probing potential new node {}".format(newnode)
-        delay = ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
+        delay = self.ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
         if(delay != MAX_DELAY):
             #REPLACE IF NECESSARY: add link from curnode to newnode
-            g.add_edge(self.this_node, newnode, weight=delay)
-            graph_modified = True
+            self.g.add_edge(self.this_node, newnode, weight=delay)
+            self.graph_modified = True
             self.neighbour_list.append(newnode)
             if self.debug: print "mesh repair: managed to add a repaired link to node {}".format(newnode)
 
