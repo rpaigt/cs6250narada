@@ -156,7 +156,7 @@ class Routing:
                     self.L[temp.index(i)][1]=datetime.datetime.now()
                 else:
                     self.L.append([i,datetime.datetime.now()])
-	    print "update of data: {} from {}, L is {}".format(update_data, incoming_node, self.L)
+	    if self.debug: print "update of data: {} from {}, L is {}".format(update_data, incoming_node, self.L)
             #TODO
             #Search self.L for incoming_node, and update its time to current time,
             # e.g. tuple = search(self.L, incoming_node), tuple[1] = currTime.seconds
@@ -229,7 +229,7 @@ class Routing:
         data = socket.recv(1024)
         data = data.split('\n')
 
-        print("New incoming {} connection from {}".format(data[0], address))
+        if self.debug: print("New incoming {} connection from {}".format(data[0], address))
         if data[0] == 'ECHO':
             socket.send(data[0])
             socket.close()
@@ -287,7 +287,7 @@ class Routing:
             incoming_node = data[0]
             incoming_node_ip = data[1]
 
-            print 'Received Data From: {}:{}'.format(incoming_node, incoming_node_ip)
+            print 'Received Data of {} From: {}:'.format(data, incoming_node)
             print data
                 
 
