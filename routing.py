@@ -149,7 +149,7 @@ class Routing:
             if(incoming_node in temp):
                 self.L[temp.index(incoming_node)][1]=datetime.datetime.now()
             else:
-                self.L.append((incoming_node,datetime.datetime.now()))
+                self.L.append([incoming_node,datetime.datetime.now()])
             #TODO
             #Search self.L for incoming_node, and update its time to current time,
             # e.g. tuple = search(self.L, incoming_node), tuple[1] = currTime.seconds
