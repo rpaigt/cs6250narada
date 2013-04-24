@@ -144,14 +144,15 @@ class Routing:
         if len(update_data) >= 2:
             incoming_node = update_data[0]
             incoming_node_ip = update_data[1]
-            self.L[([i[0] for i in self.L].index(incoming_node))][1]=datetime.datetime.now()
+            temp=[i[0] for i in self.L]
+            if(incoming_node in temp):
+                self.L[self.L.index(incoming_node)][1]=datetime.datetime.now()
+            else:
+                self.L.append((incoming_node,datetime.datetime.now()))
             #TODO
             #Search self.L for incoming_node, and update its time to current time,
             # e.g. tuple = search(self.L, incoming_node), tuple[1] = currTime.seconds
             # and if incoming_node is not in self.L, it is created and inserted into self.L
-
-            if not incoming_node in self.L:
-                self.L.append((incoming_node,datetime.datetime.now()))
             #if it's an entirely new node
             if not incoming_node in self.ip_address_dict.keys():
                 self.ip_address_dict[incoming_node] = incoming_node_ip
