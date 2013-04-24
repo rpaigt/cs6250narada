@@ -287,8 +287,7 @@ class Routing:
             incoming_node = data[0]
             incoming_node_ip = data[1]
 
-            print 'Received Data of {} From: {}:'.format(data, incoming_node)
-            print data
+            print 'Received Data of {} From: {}:'.format(data[3], incoming_node)
                 
 
 
