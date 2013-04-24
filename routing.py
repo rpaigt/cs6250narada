@@ -413,6 +413,7 @@ class Routing:
         #send update messages every 10 seconds
         self.schedule(20, self.populate_and_propogate)
         self.schedule(10, self.ping_dead_neighbours)
+        self.schedule(10, self.mesh_repair)
 
         server.serve_forever()
 
