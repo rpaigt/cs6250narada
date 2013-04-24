@@ -146,11 +146,16 @@ class Routing:
             incoming_node = update_data[0]
             incoming_node_ip = update_data[1]
 
-            temp=[i[0] for i in self.L]
-            if(incoming_node in temp):
-                self.L[temp.index(incoming_node)][1]=datetime.datetime.now()
-            else:
-                self.L.append([incoming_node,datetime.datetime.now()])
+            temp=[i[0] for i in self.L] #temp is the names that I know of so far
+
+	    names_in_update = [i[0] for i in update_data[2:]] #these are the names I see 
+	    names_in_update.append(incoming_node) #remember to also include the neighbour himself
+
+	    for i in names_in_update:
+                if(i in temp):
+                    self.L[temp.index(i)][1]=datetime.datetime.now()
+                else:
+                    self.L.append([i,datetime.datetime.now()])
 	    print "update of data: {} from {}, L is {}".format(update_data, incoming_node, self.L)
             #TODO
             #Search self.L for incoming_node, and update its time to current time,
