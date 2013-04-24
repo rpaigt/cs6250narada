@@ -146,7 +146,7 @@ class Routing:
             incoming_node_ip = update_data[1]
             temp=[i[0] for i in self.L]
             if(incoming_node in temp):
-                self.L[self.L.index(incoming_node)][1]=datetime.datetime.now()
+                self.L[temp.index(incoming_node)][1]=datetime.datetime.now()
             else:
                 self.L.append((incoming_node,datetime.datetime.now()))
             #TODO
