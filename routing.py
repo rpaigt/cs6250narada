@@ -272,8 +272,9 @@ class Routing:
         if len(data) >= 2:
             incoming_node = data[0]
             incoming_node_ip = data[1]
+            filename = data[2]
 
-            new_data = [self.this_node, self.this_ip, data[2]]
+            new_data = [self.this_node, self.this_ip, filename, data[3]]
             new_data = 'DATA\n' + json.dumps(new_data)
 
             for node in self.mst[self.this_node]:
@@ -286,9 +287,17 @@ class Routing:
         if len(data) >= 2:
             incoming_node = data[0]
             incoming_node_ip = data[1]
+            filename = data[2]
 
-            print 'Received data: {} From: {}'.format(data[2], incoming_node)
-                
+            print 'Received data: {} From: {}'.format(data[3], incoming_node)
+            
+            try:
+                f = open(filename, 'w')
+                f.write(data[3])
+                f.close()
+                print 'Saved file: ' + filename
+            except:
+                print 'Saving data failed'
 
 
     #this function pings each of its neighbours
@@ -386,9 +395,9 @@ class Routing:
         Q.sort(key=lambda e: e[1])
         Q.reverse()
         #print Q
-#length=0
-#if(Q != []):
-#length=len(Q)
+        #length=0
+        #if(Q != []):
+        #length=len(Q)
         if self.debug: print "mesh repair: Q is {}".format(Q)
         try:
             while (not len(Q) == 0 and ((curtime-Q[0][1]).seconds >= T)):

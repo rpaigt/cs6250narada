@@ -33,11 +33,12 @@ def status(node):
     data = 'STATUS\n'
     send(node, data)
 
-#sends a test packet that says "this is DATA from SENDER to RECEIVER"
-def data(sender, receiver):
-    #construct packet, attach the sender info as well as a test message
+def sendfile(sender, receiver, filename):
     print "Setting the sender's name to: {}".format(sender)
-    data = 'DATA\n' + json.dumps([sender, ip_address_dict[sender], 'Hello World!!'])
+    f = open(filename, 'r')
+    content = f.read()
+    f.close()
+    data = 'DATA\n' + json.dumps([sender, ip_address_dict[sender], filename, content])
     send(receiver, data)
 
     
