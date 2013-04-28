@@ -38,49 +38,34 @@ def get_mutual_cost(trynode):
 
 	return max(count1, count2)
 
-def mesh_repair():#called every T intervals
-	global graph_modified
-	T = 1000#timeout, now need to repair these nodes since they did nto update for T
-
+def ProbeAndAdd(curnode, newnode):
+	delay = ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
+	if(delay != MAX_DELAY):
+		#REPLACE IF NECESSARY: add link from curnode to newnode
+		g.add_edge(curnode, newnode, weight=delay)
+		graph_modified = True
+	
+def mesh_repair(curnode):#
+	MAX_DELAY=9999
+	T=100
 	while True: ## We can just call mesh repair at regular intervals. Does this need to be while(true)?
-
-		curtime = get_curtime()
-		update_list = []
-
-		for e in update_dict.keys():
-			if (update_dict[e] - curtime) >= T:
-				update_list.append(e,update_dict[e])
-
-		update_list = sorted(update_list, key=lambda e: e[1])
-
-		while len(update_list) and (update_list[0] >= T):
-			temp = update_list.pop(0)
-			delay = ping_node(temp, update=False)
-
-			if(delay != MAX_DELAY):
-				update_dict[temp] = 0
-
-				if(nx.path.bidirectional_dijkstra(g, this_node, temp)):
-					g.add_node(temp)
-
-				g.add_edge(this_node, temp, weight=delay)
-				graph_modified = True
-
-		if len(update_list):
-			prob = len(update_list) / len(update_dict)
-
+		curtime = get_curtime()#IMPLEMENT
+		#L contains tuples of (node,last_update_time) for curnode
+		#Q is list of nodes for which curnode has not recieved an update yet for time T=timeout
+		Q=[]
+		for e in L:
+			if (e[1] - curtime) >= T:
+				Q.append(e)
+		Q = sorted(Q, key=lambda e: e[1])
+		while len(Q) and (Q[0] >= T):
+			front = Q.pop(0)
+			ProbeAndAdd(curnode, front)
+		if len(Q):
+			prob = len(Q) / len(L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
 			if random.random() >= (1-prob):
-				temp = update_list.pop(0)
-				delay = ping_node(temp, update=False)
-
-				if(delay!=MAX_DELAY):
-					update_dict[temp] = 0
-					if nx.path.bidirectional_dijkstra(g, this_node, temp):
-						g.add_node(temp)
-					g.add_edge(this_node, temp, weight=delay)
-					graph_modified = True
-
-		sleep_repair(time)	
+				front = Q.pop(0)
+				ProbeAndAdd(curnode,front)
+		sleep(time)#REPLACE IF NECESSARY:with whatever sleep function gevent uses
 
 def optimise_all():#called every T seconds
 	mesh_repair()
