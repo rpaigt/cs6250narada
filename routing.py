@@ -226,7 +226,10 @@ class Routing:
 
     def handle_connection(self, socket, address):
 
-        data = socket.recv(10485760)
+        start = datetime.datetime.now()
+        data = socket.recv(104857600)
+        end = datetime.datetime.now()
+
         data = data.split('\n')
 
         if self.debug: print("New incoming {} connection from {}".format(data[0], address))
@@ -243,6 +246,11 @@ class Routing:
             socket.close()
 
         elif data[0] == 'DATA':
+            print start
+            print end
+            delay = (((end - start) / 2).microseconds) / 1000.0
+            print delay
+            
             data = json.loads(data[1])
 
             self.handle_data(data)
