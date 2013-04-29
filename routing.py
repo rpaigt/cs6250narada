@@ -220,7 +220,7 @@ class Routing:
         for vector in update_data[2:]:
             data.append(vector)
         data = json.dumps(data)
-        data = "UPDATE\n" + data
+        data = "UPDT\n" + data
 
         self.send_to_neighbours(data, origin=incoming_node)
 
@@ -358,7 +358,7 @@ class Routing:
                                                                         else Routing.MAX_DELAY
 
                 data = [self.this_node, self.this_ip, [nodeD, self.ip_address_dict[nodeD], weightD]]
-                data = 'UPDATE\n' + json.dumps(data)
+                data = 'UPDT\n' + json.dumps(data)
 
                 if self.debug: print("Going to update {} with {}, disconnected={}".\
                                                             format(nodeS, data, nodeD not in connected_neighbours))
