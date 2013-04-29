@@ -226,7 +226,13 @@ class Routing:
 
     def handle_connection(self, socket, address):
 
-        data = socket.recv(1024)
+        data = ""
+        temp = socket.recv(1024)
+        while temp:
+            data += temp
+            temp = socket.recv(1024)
+            
+        #data = socket.recv(1024)
         data = data.split('\n')
 
         if self.debug: print("New incoming {} connection from {}".format(data[0], address))
@@ -234,7 +240,7 @@ class Routing:
             socket.send(data[0])
             socket.close()
 
-        elif data[0] == 'UPDATE':
+        elif data[0] == 'UPDT':
             data = json.loads(data[1])
 
             self.handle_update(data)
@@ -250,7 +256,7 @@ class Routing:
 
             socket.close();
 
-        elif data[0] == 'STATUS':
+        elif data[0] == 'STAT':
             status = 'Node: ' + self.this_node + '\n'
             status += 'Connected nodes: ' + str(self.g.nodes()) + '\n'
 
