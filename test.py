@@ -30,7 +30,7 @@ def send(node, data):
     s.close()
 
 def status(node):
-    data = 'STAT\n'
+    data = 'STATUS\n'
     send(node, data)
 
 def sendfile(sender, receiver, filename):

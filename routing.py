@@ -220,19 +220,13 @@ class Routing:
         for vector in update_data[2:]:
             data.append(vector)
         data = json.dumps(data)
-        data = "UPDT\n" + data
+        data = "UPDATE\n" + data
 
         self.send_to_neighbours(data, origin=incoming_node)
 
     def handle_connection(self, socket, address):
 
-        data = ""
-        temp = socket.recv(1024)
-        while temp:
-            data += temp
-            temp = socket.recv(1024)
-            
-        #data = socket.recv(1024)
+        data = socket.recv(1024)
         data = data.split('\n')
 
         if self.debug: print("New incoming {} connection from {}".format(data[0], address))
@@ -240,7 +234,7 @@ class Routing:
             socket.send(data[0])
             socket.close()
 
-        elif data[0] == 'UPDT':
+        elif data[0] == 'UPDATE':
             data = json.loads(data[1])
 
             self.handle_update(data)
@@ -256,7 +250,7 @@ class Routing:
 
             socket.close();
 
-        elif data[0] == 'STAT':
+        elif data[0] == 'STATUS':
             status = 'Node: ' + self.this_node + '\n'
             status += 'Connected nodes: ' + str(self.g.nodes()) + '\n'
 
@@ -358,7 +352,7 @@ class Routing:
                                                                         else Routing.MAX_DELAY
 
                 data = [self.this_node, self.this_ip, [nodeD, self.ip_address_dict[nodeD], weightD]]
-                data = 'UPDT\n' + json.dumps(data)
+                data = 'UPDATE\n' + json.dumps(data)
 
                 if self.debug: print("Going to update {} with {}, disconnected={}".\
                                                             format(nodeS, data, nodeD not in connected_neighbours))
