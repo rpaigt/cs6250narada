@@ -226,13 +226,7 @@ class Routing:
 
     def handle_connection(self, socket, address):
 
-        data = ""
-        temp = socket.recv(4096)
-        while temp:
-            data += temp
-            temp = socket.recv(4096)
-
-        #data = socket.recv(1024)
+        data = socket.recv(1024)
         data = data.split('\n')
 
         if self.debug: print("New incoming {} connection from {}".format(data[0], address))
