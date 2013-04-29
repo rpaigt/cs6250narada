@@ -250,7 +250,7 @@ class Routing:
             print end
             delay = (((end - start) / 2).microseconds) / 1000.0
             print delay
-            
+
             data = json.loads(data[1])
 
             self.handle_data(data)
@@ -297,7 +297,7 @@ class Routing:
             incoming_node_ip = data[1]
             filename = data[2]
 
-            print 'Received data: {} From: {}'.format(data[3], incoming_node)
+            print 'Received data from: {}'.format(incoming_node)
             
             try:
                 f = open(filename, 'w')
