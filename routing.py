@@ -82,7 +82,7 @@ class Routing:
             gevent.sleep(0)
             
 
-    def ping_node(self, node, update=True):#returns delay from self to node@ip_address:port
+    def ping_node(self, node, update=True, mesh=False):#returns delay from self to node@ip_address:port
         ip_address = self.ip_address_dict[node]
 
         tries = 0
@@ -127,6 +127,8 @@ class Routing:
                         print("Adding edge {}--{}-->{} to graph".format(self.this_node, delay, node))
                     self.g.add_node(node)
                     self.g.add_edge(self.this_node, node, weight=delay)
+
+                    if mesh: self.neighbour_list.append(newnode)
 
                     #if node in self.disconnected_neighbours: self.disconnected_neighbours.pop(node, None)
                 elif delay == Routing.MAX_DELAY:
@@ -379,16 +381,17 @@ class Routing:
     # probe the dead guy to see if he's suddenly alive again
     # if he's suddenly alive again, we add a link immediately
     # and our mesh is repaired.
-    def ProbeAndAdd(self, newnode):
+    def probe_and_add(self, newnode):
         print "mesh repair: probing potential new node {}".format(newnode)
-        delay = self.ping_node(newnode, update=False)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
-        print "mesh repair: probed {} and got delay of {}".format(newnode, delay)
-        if(delay != Routing.MAX_DELAY):
-            #REPLACE IF NECESSARY: add link from curnode to newnode
-            self.g.add_edge(self.this_node, newnode, weight=delay)
-            self.graph_modified = True
-            self.neighbour_list.append(newnode)
-            print "mesh repair: managed to add a repaired link to node {}".format(newnode)
+        gevent.spawn(self.ping_node, newnode, mesh=True)#REPLACE IF NECESSARY :need to know if newnode is alive and if so, link to it
+        gevent.sleep(0)
+        #print "mesh repair: probed {} and got delay of {}".format(newnode, delay)
+        #if(delay != Routing.MAX_DELAY):
+        #    #REPLACE IF NECESSARY: add link from curnode to newnode
+        #    self.g.add_edge(self.this_node, newnode, weight=delay)
+        #    self.graph_modified = True
+        #    self.neighbour_list.append(newnode)
+        #    print "mesh repair: managed to add a repaired link to node {}".format(newnode)
 
     def mesh_repair(self):#
         T=10
@@ -410,12 +413,12 @@ class Routing:
         try:
             while (not len(Q) == 0 and ((curtime-Q[0][1]).seconds >= T)):
                 front = Q.pop(0)
-                self.ProbeAndAdd(front[0])
+                self.probe_and_add(front[0])
             if len(Q):
                 prob = len(Q) / len(self.L)#REPLACE IF NECESSARY:len(L) is the number of all nodes
                 if random.random() >= (1-prob):
                     front = Q.pop(0)
-                    self.ProbeAndAdd(front[0])
+                    self.probe_and_add(front[0])
         except:
             print "index exception occured, but Q is {}".format(Q)
 
