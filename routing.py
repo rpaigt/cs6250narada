@@ -448,7 +448,7 @@ class Routing:
         #send update messages every 10 seconds
         self.schedule(5, self.populate_and_propogate)
         self.schedule(20, self.ping_dead_neighbours)
-        self.schedule(10, self.mesh_repair)
+        #self.schedule(10, self.mesh_repair)
 
         server.serve_forever()
 
